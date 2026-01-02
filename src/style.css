@@ -1,0 +1,283 @@
+/* ==================== CSS 变量定义 ==================== */
+:root {
+  /* 颜色变量 */
+  --color-background: #000000;
+  --color-container-bg: #111111;
+  --color-text: #ffffff;
+  --color-primary: #FF9500;
+  --color-secondary: #ffffff;
+  --color-inactive: #333333;
+  --color-muted: #888888;
+  
+  /* 尺寸变量 */
+  --container-max-width: 1200px;
+  --border-radius-sm: 2px;
+  --border-radius-md: 20px;
+  --border-radius-lg: 30px;
+  
+  /* 间距变量 */
+  --spacing-xs: 5px;
+  --spacing-sm: 10px;
+  --spacing-md: 20px;
+  --spacing-lg: 30px;
+  
+  /* 动画变量 */
+  --transition-fast: 0.3s;
+  --transition-normal: 0.5s;
+  --transition-slow: 0.8s;
+  
+  /* 字体变量 */
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-number: 72px;
+  --font-size-large: 24px;
+  --font-size-medium: 18px;
+  --font-size-small: 14px;
+}
+
+/* ==================== 全局重置 ==================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==================== 应用容器 ==================== */
+#app {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-md);
+}
+
+/* ==================== 通用容器样式 ==================== */
+.timer-container {
+  width: 90vw;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  background-color: var(--color-container-bg);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+}
+
+/* ==================== 按钮样式 ==================== */
+button {
+  font-family: var(--font-family);
+  font-size: var(--font-size-medium);
+  font-weight: 500;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-container-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  outline: none;
+}
+
+button:hover {
+  background-color: var(--color-inactive);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background-color: var(--color-primary);
+  color: #000;
+}
+
+button.primary:hover {
+  opacity: 0.9;
+}
+
+/* ==================== 输入框样式 ==================== */
+input[type="text"],
+input[type="date"],
+input[type="number"],
+input[type="range"] {
+  font-family: var(--font-family);
+  font-size: var(--font-size-medium);
+  padding: 10px 15px;
+  border: 1px solid var(--color-inactive);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-container-bg);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--transition-fast) ease;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus {
+  border-color: var(--color-primary);
+}
+
+input[type="range"] {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+/* ==================== 网格样式 ==================== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20px, 1fr));
+  gap: var(--spacing-xs);
+  margin: var(--spacing-md) 0;
+}
+
+.grid-item {
+  aspect-ratio: 1;
+  background-color: var(--color-inactive);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast) ease;
+}
+
+.grid-item.active {
+  background-color: var(--color-secondary);
+}
+
+.grid-item.highlight {
+  background-color: var(--color-primary);
+}
+
+/* ==================== 进度条样式 ==================== */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-inactive);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: var(--spacing-md) 0;
+}
+
+.progress {
+  height: 100%;
+  background-color: var(--color-primary);
+  transition: width var(--transition-slow) ease;
+}
+
+/* ==================== 文本样式 ==================== */
+.number {
+  font-size: var(--font-size-number);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.label {
+  font-size: var(--font-size-large);
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+}
+
+.stats {
+  font-size: var(--font-size-medium);
+  color: var(--color-muted);
+  margin-top: var(--spacing-sm);
+}
+
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 480px) {
+  :root {
+    --font-size-number: 60px;
+    --font-size-large: 20px;
+    --font-size-medium: 16px;
+    --font-size-small: 12px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+  }
+  
+  #app {
+    padding: var(--spacing-sm);
+  }
+  
+  .timer-container {
+    padding: var(--spacing-md);
+    width: 95vw;
+  }
+  
+  .grid {
+    gap: 3px;
+  }
+  
+  button {
+    font-size: var(--font-size-small);
+    padding: 10px 20px;
+  }
+  
+  /* 优化时间条高度 */
+  .time-bar {
+    height: 50px !important;
+  }
+  
+  /* 优化输入框 */
+  input[type="text"],
+  input[type="date"],
+  input[type="number"] {
+    font-size: var(--font-size-small);
+    padding: 8px 12px;
+  }
+  
+  /* 优化标签导航 */
+  .tab-navigation button {
+    padding: 8px 12px;
+    font-size: var(--font-size-small);
+  }
+}
+
+/* ==================== 动画辅助类 ==================== */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-normal) ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ==================== 工具类 ==================== */
+.text-center {
+  text-align: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }

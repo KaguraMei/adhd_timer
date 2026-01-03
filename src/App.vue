@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { type ViewMode } from './types/view';
 import { useTheme } from './composables/useTheme';
+import { useAnimation } from './composables/useAnimation';
 import TabNavigation from './components/layout/TabNavigation.vue';
 import ViewContainer from './components/layout/ViewContainer.vue';
 import SettingsDrawer from './components/settings/SettingsDrawer.vue';
@@ -14,6 +15,9 @@ const showSettings = ref(false);
 
 // 主题管理
 const { loadTheme } = useTheme();
+
+// 动画管理
+const { loadAnimationSettings } = useAnimation();
 
 // 自动更新定时器
 let autoUpdateInterval: number | null = null;
@@ -59,6 +63,9 @@ const setupAutoUpdate = (): void => {
 onMounted(() => {
   // 加载保存的主题配置
   loadTheme();
+  
+  // 加载动画设置
+  loadAnimationSettings();
   
   // 设置自动更新
   setupAutoUpdate();

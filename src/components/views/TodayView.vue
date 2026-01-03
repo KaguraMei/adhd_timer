@@ -2,7 +2,7 @@
   <div class="today-view">
     <div class="view-header">
       <div class="current-info">
-        <AnimatedTime />
+        <TimeDisplay />
       </div>
       <h2 class="today-title">今日</h2>
     </div>
@@ -26,7 +26,7 @@ import GridDisplay from '../shared/GridDisplay.vue';
 import ProgressBar from '../shared/ProgressBar.vue';
 import StatsDisplay from '../shared/StatsDisplay.vue';
 import TimeBar from '../layout/TimeBar.vue';
-import AnimatedTime from '../shared/AnimatedTime.vue';
+import TimeDisplay from '../shared/TimeDisplay.vue';
 
 const currentTime = ref(new Date());
 let updateInterval: number | null = null;

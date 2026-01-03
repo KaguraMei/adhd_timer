@@ -281,3 +281,29 @@ input[type="range"] {
 .mb-sm { margin-bottom: var(--spacing-sm); }
 .mb-md { margin-bottom: var(--spacing-md); }
 .mb-lg { margin-bottom: var(--spacing-lg); }
+
+/* ==================== 禁用动画模式 ==================== */
+.no-animations,
+.no-animations * {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+.no-animations .fade-enter-active,
+.no-animations .fade-leave-active {
+  transition: none !important;
+}
+
+.no-animations button:hover {
+  transform: none !important;
+}
+
+.no-animations .grid-item {
+  transition: none !important;
+}
+
+.no-animations .progress {
+  transition: none !important;
+}

@@ -33,7 +33,7 @@
 
       <!-- 倒计时显示 -->
       <div class="countdown-display">
-        <AnimatedCountdown :seconds="remainingSeconds" />
+        <CountdownDisplay :seconds="remainingSeconds" />
       </div>
 
       <!-- 进度条 -->
@@ -63,7 +63,7 @@
 import { computed, watch } from 'vue';
 import { useTimer } from '@/composables/useTimer';
 import ProgressBar from '@/components/shared/ProgressBar.vue';
-import AnimatedCountdown from '@/components/shared/AnimatedCountdown.vue';
+import CountdownDisplay from '@/components/shared/CountdownDisplay.vue';
 
 const {
   totalSeconds,

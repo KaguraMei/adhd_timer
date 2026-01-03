@@ -26,6 +26,12 @@
 - 自定义主题（可调整颜色、方块大小、圆角）
 - 配置自动保存
 
+### 🎬 动画控制
+- 全局动画开关
+- 禁用动画时自动使用简化组件
+- 提升性能和无障碍支持
+- 设置持久化保存
+
 ### ⏰ 时间可视化
 - 实时更新的时间进度条
 - 动画数字显示
@@ -67,6 +73,7 @@ npm run tauri:build  # 桌面应用构建
 更多功能说明和开发文档请查看 [docs](./docs/) 文件夹：
 
 - [完整功能列表](./docs/COMPLETE_FEATURES.md) - 所有已实现功能的详细说明
+- [动画控制系统](./docs/ANIMATION_CONTROL.md) - 动画开关和性能优化
 - [动画组件](./docs/ANIMATED_COMPONENTS.md) - 动画组件的使用和实现
 - [布局改进](./docs/LAYOUT_IMPROVEMENTS.md) - 布局优化记录
 - [视图更新](./docs/VIEW_UPDATES.md) - 视图系统的演进

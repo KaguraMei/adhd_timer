@@ -162,6 +162,27 @@
             </div>
           </section>
 
+          <!-- 动画设置 -->
+          <section class="settings-section">
+            <h3>动画设置</h3>
+            
+            <div class="toggle-group">
+              <label for="animationsEnabled">
+                <span>启用动画效果</span>
+                <span class="toggle-description">关闭后将使用简化版本，提升性能</span>
+              </label>
+              <label class="toggle-switch">
+                <input
+                  id="animationsEnabled"
+                  type="checkbox"
+                  :checked="animationsEnabled"
+                  @change="handleAnimationToggle"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </section>
+
           <!-- 预览 -->
           <section class="settings-section">
             <h3>预览</h3>
@@ -191,6 +212,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { useTheme } from '../../composables/useTheme';
+import { useAnimation } from '../../composables/useAnimation';
 import type { ColorConfig, StyleConfig } from '../../types/theme';
 
 interface Props {
@@ -205,6 +227,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const { mode, colors, styles, updateColor, updateStyle, setThemeMode, saveTheme, resetTheme } = useTheme();
+const { animationsEnabled, toggleAnimations } = useAnimation();
 
 /**
  * 处理主题模式变化
@@ -227,6 +250,13 @@ const handleColorChange = (key: keyof ColorConfig, event: Event): void => {
 const handleStyleChange = (key: keyof StyleConfig, event: Event): void => {
   const target = event.target as HTMLInputElement;
   updateStyle(key, Number(target.value));
+};
+
+/**
+ * 处理动画开关切换
+ */
+const handleAnimationToggle = (): void => {
+  toggleAnimations();
 };
 
 /**
@@ -465,6 +495,79 @@ onUnmounted(() => {
   background: var(--color-primary);
   cursor: pointer;
   border: none;
+}
+
+/* 开关切换 */
+.toggle-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.toggle-group > label:first-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-group > label:first-child > span:first-child {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toggle-description {
+  color: var(--color-inactive);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-inactive);
+  transition: 0.3s;
+  border-radius: 26px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--color-primary);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
 }
 
 /* 预览 */

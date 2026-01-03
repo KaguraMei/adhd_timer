@@ -1,158 +1,191 @@
-/**
- * useAnimation - Anime.js 封装 composable
- * 提供常用动画效果的统一接口
- */
-
+import { ref, watch } from 'vue';
 import { animate } from 'animejs';
 import { stagger } from 'animejs/utils';
 
-type AnimeInstance = ReturnType<typeof animate>;
+const STORAGE_KEY = 'adhd-timer-animations-enabled';
 
-interface AnimationComposable {
-  fadeIn: (target: HTMLElement | string, duration?: number) => AnimeInstance;
-  fadeOut: (target: HTMLElement | string, duration?: number) => AnimeInstance;
-  scaleIn: (target: HTMLElement | string, duration?: number) => AnimeInstance;
-  slideWidth: (target: HTMLElement | string, width: number, duration?: number) => AnimeInstance;
-  moveIndicator: (target: HTMLElement | string, position: number, duration?: number) => AnimeInstance;
-  staggerGrid: (targets: HTMLElement[] | string, duration?: number) => AnimeInstance;
-}
+// 全局动画开关状态
+const animationsEnabled = ref(true);
 
-export function useAnimation(): AnimationComposable {
+/**
+ * 动画控制 composable
+ */
+export function useAnimation() {
   /**
-   * 检查动画目标是否存在
-   * @param target 动画目标
-   * @returns 是否存在
+   * 加载动画设置
    */
-  const checkTarget = (target: HTMLElement | string): boolean => {
-    if (typeof target === 'string') {
-      const element = document.querySelector(target);
-      if (!element) {
-        console.warn(`Animation target not found: ${target}`);
-        return false;
+  const loadAnimationSettings = (): void => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved !== null) {
+        animationsEnabled.value = JSON.parse(saved);
       }
+    } catch (error) {
+      console.error('Failed to load animation settings:', error);
     }
-    return true;
+    
+    // 应用到 document
+    updateDocumentClass();
   };
 
   /**
-   * 淡入动画
-   * @param target 动画目标
-   * @param duration 持续时间（毫秒）
-   * @returns Anime 实例
+   * 保存动画设置
    */
-  const fadeIn = (target: HTMLElement | string, duration: number = 300): AnimeInstance => {
-    if (!checkTarget(target)) {
-      return animate([], {});
+  const saveAnimationSettings = (): void => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(animationsEnabled.value));
+    } catch (error) {
+      console.error('Failed to save animation settings:', error);
     }
-
-    return animate(target, {
-      opacity: { to: 1 },
-      duration,
-      ease: 'inQuad'
-    });
   };
 
   /**
-   * 淡出动画
-   * @param target 动画目标
-   * @param duration 持续时间（毫秒）
-   * @returns Anime 实例
+   * 更新 document class
    */
-  const fadeOut = (target: HTMLElement | string, duration: number = 300): AnimeInstance => {
-    if (!checkTarget(target)) {
-      return animate([], {});
+  const updateDocumentClass = (): void => {
+    if (animationsEnabled.value) {
+      document.documentElement.classList.remove('no-animations');
+    } else {
+      document.documentElement.classList.add('no-animations');
     }
-
-    return animate(target, {
-      opacity: { to: 0 },
-      duration,
-      ease: 'outQuad'
-    });
   };
 
   /**
-   * 缩放进入动画
-   * @param target 动画目标
-   * @param duration 持续时间（毫秒）
-   * @returns Anime 实例
+   * 切换动画开关
    */
-  const scaleIn = (target: HTMLElement | string, duration: number = 500): AnimeInstance => {
-    if (!checkTarget(target)) {
-      return animate([], {});
-    }
-
-    return animate(target, {
-      scale: { to: 1 },
-      opacity: { to: 1 },
-      duration,
-      ease: 'outElastic(1, .5)'
-    });
+  const toggleAnimations = (): void => {
+    animationsEnabled.value = !animationsEnabled.value;
+    saveAnimationSettings();
+    updateDocumentClass();
   };
 
   /**
-   * 进度条宽度变化动画
-   * @param target 动画目标
-   * @param width 目标宽度（百分比，0-100）
-   * @param duration 持续时间（毫秒）
-   * @returns Anime 实例
+   * 设置动画开关
    */
-  const slideWidth = (target: HTMLElement | string, width: number, duration: number = 800): AnimeInstance => {
-    if (!checkTarget(target)) {
-      return animate([], {});
-    }
-
-    return animate(target, {
-      width: { to: `${width}%` },
-      duration,
-      ease: 'inOutQuad'
-    });
-  };
-
-  /**
-   * 时间指示器移动动画
-   * @param target 动画目标
-   * @param position 目标位置（百分比，0-100）
-   * @param duration 持续时间（毫秒）
-   * @returns Anime 实例
-   */
-  const moveIndicator = (target: HTMLElement | string, position: number, duration: number = 1000): AnimeInstance => {
-    if (!checkTarget(target)) {
-      return animate([], {});
-    }
-
-    return animate(target, {
-      left: { to: `${position}%` },
-      duration,
-      ease: 'linear'
-    });
+  const setAnimationsEnabled = (enabled: boolean): void => {
+    animationsEnabled.value = enabled;
+    saveAnimationSettings();
+    updateDocumentClass();
   };
 
   /**
    * 网格交错动画
-   * @param targets 动画目标数组或选择器
-   * @param duration 持续时间（毫秒）
-   * @returns Anime 实例
    */
-  const staggerGrid = (targets: HTMLElement[] | string, duration: number = 500): AnimeInstance => {
-    if (typeof targets === 'string' && !checkTarget(targets)) {
-      return animate([], {});
+  const staggerGrid = (elements: HTMLElement[], duration: number = 500): Promise<void> => {
+    if (!animationsEnabled.value || !elements || elements.length === 0) {
+      return Promise.resolve();
     }
 
-    return animate(targets, {
-      scale: { to: 1 },
-      opacity: { to: 1 },
-      duration,
-      delay: stagger(20, { start: 0 }),
-      ease: 'outElastic(1, .5)'
-    });
+    return animate(elements, {
+      scale: { to: [0.95, 1] },
+      opacity: { to: [0.8, 1] },
+      duration: duration,
+      delay: stagger(30),
+      ease: 'outQuad'
+    }).then(() => {});
   };
 
+  /**
+   * 淡入动画
+   */
+  const fadeIn = (element: HTMLElement, duration: number = 300): Promise<void> => {
+    if (!animationsEnabled.value) {
+      element.style.opacity = '1';
+      return Promise.resolve();
+    }
+
+    return animate(element, {
+      opacity: { to: 1 },
+      translateY: { to: [20, 0] },
+      duration: duration,
+      ease: 'outQuad'
+    }).then(() => {});
+  };
+
+  /**
+   * 淡出动画
+   */
+  const fadeOut = (element: HTMLElement, duration: number = 300): Promise<void> => {
+    if (!animationsEnabled.value) {
+      element.style.opacity = '0';
+      return Promise.resolve();
+    }
+
+    return animate(element, {
+      opacity: { to: 0 },
+      translateY: { to: -20 },
+      duration: duration,
+      ease: 'inQuad'
+    }).then(() => {});
+  };
+
+  /**
+   * 缩放进入动画
+   */
+  const scaleIn = (element: HTMLElement, duration: number = 400): Promise<void> => {
+    if (!animationsEnabled.value) {
+      element.style.transform = 'scale(1)';
+      element.style.opacity = '1';
+      return Promise.resolve();
+    }
+
+    return animate(element, {
+      scale: { to: 1 },
+      opacity: { to: 1 },
+      duration: duration,
+      ease: 'outBack'
+    }).then(() => {});
+  };
+
+  /**
+   * 移动指示器动画
+   */
+  const moveIndicator = (element: HTMLElement, position: number, duration: number = 1000): Promise<void> => {
+    if (!animationsEnabled.value) {
+      element.style.left = `${position}%`;
+      return Promise.resolve();
+    }
+
+    return animate(element, {
+      left: { to: `${position}%` },
+      duration: duration,
+      ease: 'outQuad'
+    }).then(() => {});
+  };
+
+  /**
+   * 宽度滑动动画
+   */
+  const slideWidth = (element: HTMLElement, percentage: number, duration: number = 800): Promise<void> => {
+    if (!animationsEnabled.value) {
+      element.style.width = `${percentage}%`;
+      return Promise.resolve();
+    }
+
+    return animate(element, {
+      width: { to: `${percentage}%` },
+      duration: duration,
+      ease: 'outQuad'
+    }).then(() => {});
+  };
+
+  /**
+   * 监听动画状态变化
+   */
+  watch(animationsEnabled, () => {
+    updateDocumentClass();
+  });
+
   return {
+    animationsEnabled,
+    toggleAnimations,
+    setAnimationsEnabled,
+    loadAnimationSettings,
+    staggerGrid,
     fadeIn,
     fadeOut,
     scaleIn,
-    slideWidth,
     moveIndicator,
-    staggerGrid
+    slideWidth
   };
 }

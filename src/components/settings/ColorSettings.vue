@@ -1,6 +1,6 @@
 <template>
-  <div v-if="isVisible" class="modal-overlay" @click="handleOverlayClick">
-    <div class="modal-content" @click.stop>
+  <div v-if="isVisible" ref="modalOverlay" class="modal-overlay" @click="handleOverlayClick">
+    <div ref="modalContent" class="modal-content" @click.stop>
       <div class="modal-header">
         <h2>颜色设置</h2>
         <button class="close-button" @click="handleClose" aria-label="关闭">×</button>
@@ -143,6 +143,8 @@ const { colors, updateColor, saveTheme, resetTheme } = useTheme();
 const { fadeIn, fadeOut, scaleIn } = useAnimation();
 
 const isVisible = ref(props.visible);
+const modalOverlay = ref<HTMLElement | null>(null);
+const modalContent = ref<HTMLElement | null>(null);
 
 /**
  * 处理颜色变化
@@ -189,13 +191,17 @@ watch(() => props.visible, (newValue) => {
     isVisible.value = true;
     // 延迟执行动画，确保 DOM 已渲染
     setTimeout(() => {
-      fadeIn('.modal-overlay', 300);
-      scaleIn('.modal-content', 400);
+      if (modalOverlay.value) fadeIn(modalOverlay.value, 300);
+      if (modalContent.value) scaleIn(modalContent.value, 400);
     }, 10);
   } else {
-    fadeOut('.modal-overlay', 300).then(() => {
+    if (modalOverlay.value) {
+      fadeOut(modalOverlay.value, 300).then(() => {
+        isVisible.value = false;
+      });
+    } else {
       isVisible.value = false;
-    });
+    }
   }
 });
 
@@ -212,8 +218,8 @@ onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
   if (props.visible) {
     setTimeout(() => {
-      fadeIn('.modal-overlay', 300);
-      scaleIn('.modal-content', 400);
+      if (modalOverlay.value) fadeIn(modalOverlay.value, 300);
+      if (modalContent.value) scaleIn(modalContent.value, 400);
     }, 10);
   }
 });

@@ -1,6 +1,7 @@
 /**
  * useTimer - 倒计时管理 composable
  * 管理倒计时状态和逻辑
+ * 使用单例模式确保状态在组件间共享
  */
 
 import { ref, computed, type Ref, type ComputedRef } from 'vue';
@@ -17,12 +18,13 @@ interface TimerComposable {
   setDuration: (minutes: number) => void;
 }
 
-export function useTimer(): TimerComposable {
-  const totalSeconds = ref<number>(0);
-  const remainingSeconds = ref<number>(0);
-  const isRunning = ref<boolean>(false);
-  let intervalId: number | null = null;
+// 单例状态 - 在模块级别定义，确保状态持久化
+const totalSeconds = ref<number>(0);
+const remainingSeconds = ref<number>(0);
+const isRunning = ref<boolean>(false);
+let intervalId: number | null = null;
 
+export function useTimer(): TimerComposable {
   /**
    * 格式化显示时间 (MM:SS)
    */

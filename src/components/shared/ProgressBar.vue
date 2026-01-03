@@ -22,24 +22,29 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const progressBar = ref<HTMLElement | null>(null);
-const { slideWidth } = useAnimation();
+const { slideWidth, animationsEnabled } = useAnimation();
+const currentWidth = ref(0);
 
 const progressStyle = computed(() => ({
-  width: props.animated ? '0%' : `${props.percentage}%`
+  width: `${currentWidth.value}%`
 }));
 
 // 初始化动画
 onMounted(() => {
-  if (props.animated && progressBar.value) {
+  if (props.animated && progressBar.value && animationsEnabled.value) {
     slideWidth(progressBar.value, props.percentage, 800);
+    currentWidth.value = props.percentage;
+  } else {
+    currentWidth.value = props.percentage;
   }
 });
 
 // 监听百分比变化并触发动画
 watch(() => props.percentage, (newPercentage) => {
-  if (props.animated && progressBar.value) {
+  if (props.animated && progressBar.value && animationsEnabled.value) {
     slideWidth(progressBar.value, newPercentage, 800);
   }
+  currentWidth.value = newPercentage;
 });
 </script>
 

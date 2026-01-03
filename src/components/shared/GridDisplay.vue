@@ -68,7 +68,8 @@ watch(() => props.current, () => {
   display: grid;
   gap: 5px;
   width: 100%;
-  height: 30vh;
+  height: auto; /* 👈 从 30vh 改成 auto */
+   min-height: 30vh;
 }
 
 .grid-item {

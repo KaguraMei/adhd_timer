@@ -58,51 +58,76 @@ watch(() => props.currentView, async () => {
 .tab-navigation {
   display: flex;
   justify-content: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
+  gap: var(--spacing-lg, 40px);
+  padding: var(--spacing-md, 20px);
   flex-wrap: wrap;
 }
 
 .tab-button {
-  padding: 10px 20px;
+  position: relative;
+  padding: 10px 0;
   background-color: transparent;
-  color: var(--color-muted);
-  border: 2px solid var(--color-inactive);
-  border-radius: var(--border-radius-lg);
-  font-size: 16px;
+  color: var(--color-inactive, #666); /* 👈 跟随主题的未选中颜色 */
+  border: none;
+  font-size: 18px;
   cursor: pointer;
-  transition: all var(--transition-fast) ease;
+  transition: color var(--transition-fast, 0.3s) ease;
   outline: none;
-  font-weight: 500;
+  font-weight: 400;
+}
+
+/* 底部横线 */
+.tab-button::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--color-primary); /* 👈 跟随主题的主色 */
+  transform: scaleX(0);
+  transition: transform var(--transition-fast, 0.3s) ease;
 }
 
 .tab-button:hover {
-  border-color: var(--color-primary);
-  color: var(--color-text);
+  color: var(--color-text); /* 👈 hover 时使用主题文字颜色 */
+}
+
+.tab-button:hover::after {
+  transform: scaleX(0.5);
 }
 
 .tab-button:focus-visible {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.3);
+  color: var(--color-primary);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 2px;
 }
 
+/* 选中状态 */
 .tab-button.active {
-  background-color: var(--color-primary);
-  color: #000;
-  border-color: var(--color-primary);
+  color: var(--color-text); /* 👈 选中时使用主题文字颜色 */
   font-weight: 600;
+}
+
+.tab-button.active::after {
+  transform: scaleX(1);
 }
 
 /* 响应式设计 */
 @media (max-width: 480px) {
   .tab-navigation {
-    gap: var(--spacing-xs);
-    padding: var(--spacing-sm);
+    gap: var(--spacing-md, 30px);
+    padding: var(--spacing-sm, 15px);
   }
 
   .tab-button {
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 8px 0;
+    font-size: 16px;
+  }
+
+  .tab-button::after {
+    height: 2px;
   }
 }
 </style>

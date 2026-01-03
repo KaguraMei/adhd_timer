@@ -1,12 +1,6 @@
 <template>
   <div class="view-container">
-    <Transition
-      name="view-fade"
-      mode="out-in"
-      @before-enter="onBeforeEnter"
-      @enter="onEnter"
-      @leave="onLeave"
-    >
+    <Transition name="view-fade" mode="out-in" @before-enter="onBeforeEnter" @enter="onEnter" @leave="onLeave">
       <component :is="currentViewComponent" :key="currentView" class="timer-display" />
     </Transition>
   </div>
@@ -73,13 +67,14 @@ const onLeave = (el: Element, done: () => void) => {
 
 <style scoped>
 .view-container {
+  flex: 1;
   width: 100%;
   max-width: var(--container-max-width);
   margin: 0 auto;
   padding: var(--spacing-md);
   min-height: 400px;
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   justify-content: center;
 }
 

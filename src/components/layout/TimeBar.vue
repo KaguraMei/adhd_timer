@@ -5,7 +5,7 @@
       <div
         v-for="tick in ticks"
         :key="tick.position"
-        :class="['time-tick', tick.type]"
+        :class="['time-tick', tick.type, { past: tick.isPast }]"
         :style="{ left: `${tick.position}%` }"
       >
         <!-- <span v-if="tick.label" class="tick-label">{{ tick.label }}</span> -->
@@ -29,6 +29,7 @@ interface TimeTick {
   position: number;
   type: 'major' | 'minor';
   label?: string;
+  isPast: boolean; // 👈 新增：标记是否已过去
 }
 
 const { moveIndicator } = useAnimation();
@@ -54,10 +55,15 @@ const ticks = computed<TimeTick[]>(() => {
     const displayMinute = minute === 60 ? 0 : minute;
     const displayHour = minute === 60 ? (currentHour.value + 1) % 24 : currentHour.value;
     
+    // 👇 判断刻度是否已经过去
+    // 如果刻度的分钟数小于当前分钟数，说明已经过去
+    const isPast = minute < currentMinute.value;
+    
     result.push({
       position,
       type: 'major',
-      label: `${displayHour.toString().padStart(2, '0')}:${displayMinute.toString().padStart(2, '0')}`
+      label: `${displayHour.toString().padStart(2, '0')}:${displayMinute.toString().padStart(2, '0')}`,
+      isPast // 👈 添加 isPast 属性
     });
   }
   
@@ -158,13 +164,22 @@ onUnmounted(() => {
 .time-tick.major {
   width: 6px;
   height: 80%;
-  background-color: var(--color-inactive);
+  background-color: var(--color-inactive); /* 默认：未来时间 */
+}
+
+/* 👇 过去的时间：使用主题文字颜色 */
+.time-tick.major.past {
+  background-color: var(--color-text);
 }
 
 .time-tick.minor {
   width: 3px;
   height: 40%;
   background-color: var(--color-inactive);
+}
+
+.time-tick.minor.past {
+  background-color: var(--color-text);
 }
 
 /* 刻度标签 */

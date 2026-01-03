@@ -54,9 +54,10 @@ const statsText = computed(() => {
 /* 最外层容器：占满高度，Flex 纵向布局 */
 .year-view {
   width: 100%;
-  height: 100%;
+  height: 100%; 
   /* 或者 100vh，取决于你的 App.vue 怎么写的 */
   display: flex;
+  flex:1;
   flex-direction: column;
   overflow: hidden;
   /* 防止整个页面滚动 */
@@ -73,6 +74,7 @@ const statsText = computed(() => {
   padding-top: 20px;
   padding-bottom: 20px;
 }
+
 /* 
 .header-row {
   display: flex;
@@ -90,6 +92,7 @@ const statsText = computed(() => {
   align-items: center;
   justify-content: center;
 }
+
 .current-info {
   position: absolute;
   left: 0;
@@ -115,16 +118,9 @@ const statsText = computed(() => {
   flex-direction: column;
   /* 核心：占据 header 和 footer 剩下的所有空间 */
   overflow-y: auto;
-  /* 核心：只有这部分可以滚动 */
-  min-height: 0;
-  /* 修复 Flex 滚动条 bug */
-
   /* 增加一点内边距，防止滚动条贴着格子 */
   padding-right: 5px;
-
-  /* 确保 Grid 不会贴着上下 */
-  margin-bottom: 20px;
-  gap: 20px;
+  gap: 120px;
 }
 
 /* 底部区域 */

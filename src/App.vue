@@ -19,9 +19,6 @@ const { loadTheme } = useTheme();
 // 动画管理
 const { loadAnimationSettings } = useAnimation();
 
-// 自动更新定时器
-let autoUpdateInterval: number | null = null;
-
 /**
  * 切换视图
  */
@@ -44,20 +41,6 @@ const closeSettings = (): void => {
 };
 
 /**
- * 自动更新当前视图（每 60 秒）
- */
-const setupAutoUpdate = (): void => {
-  autoUpdateInterval = window.setInterval(() => {
-    // 强制重新渲染当前视图
-    const temp = currentView.value;
-    currentView.value = '' as ViewMode;
-    setTimeout(() => {
-      currentView.value = temp;
-    }, 10);
-  }, 60000);
-};
-
-/**
  * 组件挂载时初始化
  */
 onMounted(() => {
@@ -66,24 +49,7 @@ onMounted(() => {
   
   // 加载动画设置
   loadAnimationSettings();
-  
-  // 设置自动更新
-  setupAutoUpdate();
 });
-
-/**
- * 组件卸载时清理
- */
-const cleanup = (): void => {
-  if (autoUpdateInterval !== null) {
-    clearInterval(autoUpdateInterval);
-  }
-};
-
-// 注册清理函数
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', cleanup);
-}
 </script>
 
 <template>
@@ -118,6 +84,8 @@ if (typeof window !== 'undefined') {
 .app-container {
   width: 100%;
   min-height: 90vh;
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-background);
   position: relative;
 }

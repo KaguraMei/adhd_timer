@@ -27,7 +27,9 @@ import ProgressBar from '../shared/ProgressBar.vue';
 import StatsDisplay from '../shared/StatsDisplay.vue';
 import TimeBar from '../layout/TimeBar.vue';
 import TimeDisplay from '../shared/TimeDisplay.vue';
+import { useSettingsStore } from '../../stores/settings';
 
+const settingsStore = useSettingsStore();
 const currentTime = ref(new Date());
 let updateInterval: number | null = null;
 
@@ -36,25 +38,62 @@ const updateCurrentTime = () => {
   currentTime.value = new Date();
 };
 
-// 获取当前小时
+// 获取当前小时（从每日开始时间算起）
 const currentHour = computed(() => {
-  return currentTime.value.getHours() + 1; // +1 因为我们显示已完成的小时
+  const now = currentTime.value;
+  const startHour = settingsStore.dayStartTime.hour;
+  const startMinute = settingsStore.dayStartTime.minute;
+  
+  // 计算从每日开始时间到现在经过的分钟数
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const startMinutes = startHour * 60 + startMinute;
+  
+  let elapsedMinutes = currentMinutes - startMinutes;
+  if (elapsedMinutes < 0) {
+    elapsedMinutes += 24 * 60; // 跨天
+  }
+  
+  // 转换为小时数（向上取整）
+  return Math.ceil(elapsedMinutes / 60);
 });
 
-// 计算进度百分比
+// 计算进度百分比（从每日开始时间算起）
 const progressPercentage = computed(() => {
-  const hours = currentTime.value.getHours();
-  const minutes = currentTime.value.getMinutes();
-  const seconds = currentTime.value.getSeconds();
-  const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+  const now = currentTime.value;
+  const startHour = settingsStore.dayStartTime.hour;
+  const startMinute = settingsStore.dayStartTime.minute;
+  
+  // 计算从每日开始时间到现在经过的秒数
+  const currentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const startSeconds = startHour * 3600 + startMinute * 60;
+  
+  let elapsedSeconds = currentSeconds - startSeconds;
+  if (elapsedSeconds < 0) {
+    elapsedSeconds += 24 * 3600; // 跨天
+  }
+  
   const daySeconds = 24 * 3600;
-  return Math.round((totalSeconds / daySeconds) * 100);
+  return Math.round((elapsedSeconds / daySeconds) * 100);
 });
 
 // 统计信息文本
 const statsText = computed(() => {
-  const hours = currentTime.value.getHours();
-  const minutes = currentTime.value.getMinutes();
+  const now = currentTime.value;
+  const startHour = settingsStore.dayStartTime.hour;
+  const startMinute = settingsStore.dayStartTime.minute;
+  
+  // 计算从每日开始时间到现在经过的分钟数
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const startMinutes = startHour * 60 + startMinute;
+  
+  let elapsedMinutes = currentMinutes - startMinutes;
+  if (elapsedMinutes < 0) {
+    elapsedMinutes += 24 * 60; // 跨天
+  }
+  
+  const hours = Math.floor(elapsedMinutes / 60);
+  const minutes = elapsedMinutes % 60;
+  
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} / 24小时`;
 });
 

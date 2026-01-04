@@ -26,3 +26,11 @@ dist-ssr
 
 # Kiro AI assistant
 .kiro
+
+#tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/schemas/
+src-tauri/WixLibs/
+src-tauri/.env
+src-tauri/*.nsi

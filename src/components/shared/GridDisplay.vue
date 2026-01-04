@@ -1,12 +1,6 @@
 <template>
   <div class="grid-display" :style="gridStyle">
-    <div
-      v-for="index in total"
-      :key="index"
-      ref="gridItems"
-      class="grid-item"
-      :class="getItemClass(index)"
-    ></div>
+    <div v-for="index in total" :key="index" ref="gridItems" class="grid-item" :class="getItemClass(index)"></div>
   </div>
 </template>
 
@@ -30,7 +24,7 @@ const { staggerGrid } = useAnimation();
 // 计算网格列数
 const calculatedColumns = computed(() => {
   if (props.columns > 0) return props.columns;
-  
+
   // 自动计算列数
   if (props.total <= 31) return 7; // 月度视图
   if (props.total <= 100) return 10; // 人生视图
@@ -68,14 +62,15 @@ watch(() => props.current, () => {
   display: grid;
   gap: 5px;
   width: 100%;
-  height: auto; /* 👈 从 30vh 改成 auto */
-   min-height: 30vh;
+  height: auto;
+  /* 👈 从 30vh 改成 auto */
+  min-height: 35vh;
 }
 
 .grid-item {
   width: var(--grid-size, 20px);
   height: var(--grid-size, 20px);
-    /* aspect-ratio: 1 / 1; */
+  /* aspect-ratio: 1 / 1; */
   border-radius: var(--border-radius-sm, 2px);
   transition: all var(--transition-fast, 0.3s) ease;
   background-color: var(--color-inactive, #333);

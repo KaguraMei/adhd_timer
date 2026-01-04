@@ -2,10 +2,11 @@
 import { ref, onMounted } from 'vue';
 import { type ViewMode } from './types/view';
 import { useTheme } from './composables/useTheme';
-import { useAnimation } from './composables/useAnimation';
 import TabNavigation from './components/layout/TabNavigation.vue';
 import ViewContainer from './components/layout/ViewContainer.vue';
 import SettingsDrawer from './components/settings/SettingsDrawer.vue';
+import AppFooter from './components/layout/AppFooter.vue';
+import DraggableButton from './components/shared/DraggableButton.vue';
 
 // 当前视图状态
 const currentView = ref<ViewMode>('today');
@@ -13,11 +14,8 @@ const currentView = ref<ViewMode>('today');
 // 设置抽屉显示状态
 const showSettings = ref(false);
 
-// 主题管理
+// 使用主题 composable
 const { loadTheme } = useTheme();
-
-// 动画管理
-const { loadAnimationSettings } = useAnimation();
 
 /**
  * 切换视图
@@ -44,24 +42,21 @@ const closeSettings = (): void => {
  * 组件挂载时初始化
  */
 onMounted(() => {
-  // 加载保存的主题配置
+  // 从 localStorage 加载主题并应用
   loadTheme();
-  
-  // 加载动画设置
-  loadAnimationSettings();
 });
 </script>
 
 <template>
   <div class="app-container">
-    <!-- 设置按钮 -->
-    <button 
-      class="settings-button" 
-      @click="toggleSettings"
+    <!-- 可拖动的设置按钮 -->
+    <DraggableButton
       aria-label="打开设置"
+      storage-key="settings-button-position"
+      @click="toggleSettings"
     >
       ⚙️
-    </button>
+    </DraggableButton>
 
     <!-- 标签导航 -->
     <TabNavigation 
@@ -71,6 +66,9 @@ onMounted(() => {
 
     <!-- 视图容器 -->
     <ViewContainer :current-view="currentView" />
+
+    <!-- 底部栏 -->
+    <AppFooter />
 
     <!-- 设置抽屉 -->
     <SettingsDrawer 
@@ -83,52 +81,10 @@ onMounted(() => {
 <style scoped>
 .app-container {
   width: 100%;
-  min-height: 90vh;
+  flex: 1; 
   display: flex;
   flex-direction: column;
   background-color: var(--color-background);
   position: relative;
-}
-
-.settings-button {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: var(--color-container-bg);
-  border: 2px solid var(--color-inactive);
-  color: var(--color-text);
-  font-size: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast) ease;
-  z-index: 500;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.settings-button:hover {
-  border-color: var(--color-primary);
-  background-color: var(--color-primary);
-  transform: rotate(90deg);
-}
-
-.settings-button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.3);
-}
-
-/* 响应式设计 */
-@media (max-width: 480px) {
-  .settings-button {
-    top: 15px;
-    right: 15px;
-    width: 45px;
-    height: 45px;
-    font-size: 20px;
-  }
 }
 </style>

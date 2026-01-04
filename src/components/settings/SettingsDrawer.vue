@@ -183,6 +183,25 @@
             </div>
           </section>
 
+          <!-- 每日开始时间设置 -->
+          <section class="settings-section">
+            <h3>每日开始时间</h3>
+             <p class="section-description">
+              设置每日开始的时间点，会影响"今日"、"本周"、"本月"等时间范围的判断
+            </p>
+            
+            <IOSTimePicker
+              :hour="dayStartHour"
+              :minute="dayStartMinute"
+              @update:hour="handleDayStartHourChange"
+              @update:minute="handleDayStartMinuteChange"
+            />
+            
+            <div class="time-preview-large">
+              {{ formatDayStartTime }}
+            </div>
+          </section>
+
           <!-- 预览 -->
           <section class="settings-section">
             <h3>预览</h3>
@@ -210,9 +229,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { useTheme } from '../../composables/useTheme';
 import { useAnimation } from '../../composables/useAnimation';
+import { useSettingsStore } from '../../stores/settings';
+import IOSTimePicker from '../shared/IOSTimePicker.vue';
 import type { ColorConfig, StyleConfig } from '../../types/theme';
 
 interface Props {
@@ -228,6 +249,18 @@ const emit = defineEmits<Emits>();
 
 const { mode, colors, styles, updateColor, updateStyle, setThemeMode, saveTheme, resetTheme } = useTheme();
 const { animationsEnabled, toggleAnimations } = useAnimation();
+const settingsStore = useSettingsStore();
+
+// 每日开始时间
+const dayStartHour = ref(settingsStore.dayStartTime.hour);
+const dayStartMinute = ref(settingsStore.dayStartTime.minute);
+
+// 格式化显示
+const formatDayStartTime = computed(() => {
+  const h = dayStartHour.value.toString().padStart(2, '0');
+  const m = dayStartMinute.value.toString().padStart(2, '0');
+  return `${h}:${m}`;
+});
 
 /**
  * 处理主题模式变化
@@ -260,6 +293,22 @@ const handleAnimationToggle = (): void => {
 };
 
 /**
+ * 处理每日开始小时变化
+ */
+const handleDayStartHourChange = (value: number): void => {
+  dayStartHour.value = value;
+  settingsStore.setDayStartTime(dayStartHour.value, dayStartMinute.value);
+};
+
+/**
+ * 处理每日开始分钟变化
+ */
+const handleDayStartMinuteChange = (value: number): void => {
+  dayStartMinute.value = value;
+  settingsStore.setDayStartTime(dayStartHour.value, dayStartMinute.value);
+};
+
+/**
  * 处理保存按钮点击
  */
 const handleSave = (): void => {
@@ -272,6 +321,9 @@ const handleSave = (): void => {
  */
 const handleReset = (): void => {
   resetTheme();
+  dayStartHour.value = 0;
+  dayStartMinute.value = 0;
+  settingsStore.setDayStartTime(0, 0);
 };
 
 /**
@@ -374,6 +426,13 @@ onUnmounted(() => {
   font-size: 18px;
   color: var(--color-text);
   font-weight: 600;
+}
+
+.section-description {
+  color: var(--color-inactive);
+  font-size: 13px;
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: 1.5;
 }
 
 /* 主题模式按钮 */
@@ -568,6 +627,19 @@ onUnmounted(() => {
 
 .toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(24px);
+}
+
+/* 时间预览（大号） */
+.time-preview-large {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-primary);
+  padding: var(--spacing-md);
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-sm);
+  margin-top: var(--spacing-md);
+  letter-spacing: 2px;
 }
 
 /* 预览 */

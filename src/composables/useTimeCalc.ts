@@ -3,6 +3,9 @@
  * 提供各种时间和日期计算函数
  */
 
+import { useSettingsStore } from '../stores/settings';
+import { getAdjustedDate } from '../utils/dateUtils';
+
 interface TimeCalcComposable {
   getCurrentDayOfMonth: () => number;
   getDaysInMonth: (date?: Date) => number;
@@ -15,12 +18,20 @@ interface TimeCalcComposable {
 }
 
 export function useTimeCalc(): TimeCalcComposable {
+  const settingsStore = useSettingsStore();
+  
   /**
-   * 获取当前是本月第几天
+   * 获取调整后的当前日期（考虑每日开始时间）
+   */
+  const getAdjustedNow = (): Date => {
+    return getAdjustedDate(new Date(), settingsStore.dayStartTime);
+  };
+  /**
+   * 获取当前是本月第几天（考虑每日开始时间）
    * @returns 当前日期（1-31）
    */
   const getCurrentDayOfMonth = (): number => {
-    return new Date().getDate();
+    return getAdjustedNow().getDate();
   };
 
   /**
@@ -29,28 +40,29 @@ export function useTimeCalc(): TimeCalcComposable {
    * @returns 该月的天数
    */
   const getDaysInMonth = (date: Date = new Date()): number => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
+    const adjustedDate = getAdjustedDate(date, settingsStore.dayStartTime);
+    const year = adjustedDate.getFullYear();
+    const month = adjustedDate.getMonth();
     // 下个月的第0天就是本月的最后一天
     return new Date(year, month + 1, 0).getDate();
   };
 
   /**
-   * 获取当前是本周第几天
+   * 获取当前是本周第几天（考虑每日开始时间）
    * @returns 1-7（周一到周日）
    */
   const getCurrentDayOfWeek = (): number => {
-    const day = new Date().getDay();
+    const day = getAdjustedNow().getDay();
     // 将周日(0)映射为7，其他保持不变
     return day === 0 ? 7 : day;
   };
 
   /**
-   * 获取当前是今年第几天
+   * 获取当前是今年第几天（考虑每日开始时间）
    * @returns 1-366
    */
   const getCurrentDayOfYear = (): number => {
-    const now = new Date();
+    const now = getAdjustedNow();
     const start = new Date(now.getFullYear(), 0, 0);
     const diff = now.getTime() - start.getTime();
     const oneDay = 1000 * 60 * 60 * 24;

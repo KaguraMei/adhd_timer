@@ -1,42 +1,23 @@
-import { ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { animate } from 'animejs';
 import { stagger } from 'animejs/utils';
-
-const STORAGE_KEY = 'adhd-timer-animations-enabled';
-
-// 全局动画开关状态
-const animationsEnabled = ref(true);
+import { useSettingsStore } from '../stores/settings';
 
 /**
  * 动画控制 composable
+ * 现在使用 Pinia store 进行状态管理
  */
 export function useAnimation() {
+  const settingsStore = useSettingsStore();
+  
+  // 使用 computed 从 store 获取响应式数据
+  const animationsEnabled = computed(() => settingsStore.animationsEnabled);
   /**
    * 加载动画设置
    */
   const loadAnimationSettings = (): void => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved !== null) {
-        animationsEnabled.value = JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error('Failed to load animation settings:', error);
-    }
-    
-    // 应用到 document
+    settingsStore.loadSettings();
     updateDocumentClass();
-  };
-
-  /**
-   * 保存动画设置
-   */
-  const saveAnimationSettings = (): void => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(animationsEnabled.value));
-    } catch (error) {
-      console.error('Failed to save animation settings:', error);
-    }
   };
 
   /**
@@ -54,8 +35,7 @@ export function useAnimation() {
    * 切换动画开关
    */
   const toggleAnimations = (): void => {
-    animationsEnabled.value = !animationsEnabled.value;
-    saveAnimationSettings();
+    settingsStore.toggleAnimations();
     updateDocumentClass();
   };
 
@@ -63,8 +43,7 @@ export function useAnimation() {
    * 设置动画开关
    */
   const setAnimationsEnabled = (enabled: boolean): void => {
-    animationsEnabled.value = enabled;
-    saveAnimationSettings();
+    settingsStore.setAnimationsEnabled(enabled);
     updateDocumentClass();
   };
 

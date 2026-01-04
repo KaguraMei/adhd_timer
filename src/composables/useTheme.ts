@@ -1,20 +1,17 @@
 /**
  * useTheme - 主题管理 composable
- * 管理颜色配置、样式配置、应用主题到 CSS 变量、持久化存储
+ * 现在使用 Pinia store 进行状态管理
  */
 
-import { ref, type Ref } from 'vue';
-import type { ColorConfig, ThemeMode, StyleConfig, ThemeConfig } from '../types/theme';
-// 确保 DEFAULT_STYLES, LIGHT_THEME, DARK_THEME 在 types/theme 中正确导出
-import { DEFAULT_STYLES, LIGHT_THEME, DARK_THEME } from '../types/theme';
-import { useStorage } from './useStorage';
-
-const THEME_STORAGE_KEY = 'adhd-timer-theme';
+import { computed, type ComputedRef } from 'vue';
+import { useSettingsStore } from '../stores/settings';
+import { LIGHT_THEME, DARK_THEME } from '../types/theme';
+import type { ColorConfig, ThemeMode, StyleConfig } from '../types/theme';
 
 interface ThemeComposable {
-  mode: Ref<ThemeMode>;
-  colors: Ref<ColorConfig>;
-  styles: Ref<StyleConfig>;
+  mode: ComputedRef<ThemeMode>;
+  colors: ComputedRef<ColorConfig>;
+  styles: ComputedRef<StyleConfig>;
   applyTheme: () => void;
   updateColor: (key: keyof ColorConfig, value: string) => void;
   updateStyle: (key: keyof StyleConfig, value: number) => void;
@@ -25,13 +22,12 @@ interface ThemeComposable {
 }
 
 export function useTheme(): ThemeComposable {
-  const storage = useStorage();
+  const settingsStore = useSettingsStore();
   
-  // 1. 修改：初始化时直接使用 LIGHT_THEME，确保默认就是明亮模式
-  // 这样即使 loadTheme 还没运行，初始状态也是对的
-  const mode = ref<ThemeMode>('light');
-  const colors = ref<ColorConfig>({ ...LIGHT_THEME });
-  const styles = ref<StyleConfig>({ ...DEFAULT_STYLES });
+  // 使用 computed 从 store 获取响应式数据
+  const mode = computed(() => settingsStore.themeMode);
+  const colors = computed(() => settingsStore.colors);
+  const styles = computed(() => settingsStore.styles);
 
   /**
    * 应用主题到 CSS 变量
@@ -63,18 +59,12 @@ export function useTheme(): ThemeComposable {
    * 判断颜色是否为浅色
    */
   const isLightColor = (color: string): boolean => {
-    // 防御性判断
     if (!color || typeof color !== 'string') {
-      console.warn('isLightColor received invalid color:', color);
-      // 默认视作亮色背景（返回true），这样文字变黑，或者根据你的设计取舍
-      return true; 
+      return true;
     }
     
     const hex = color.replace('#', '');
-    
-    // 2. 修改：使用 substring 替代废弃的 substr
-    // 同时也加了简单校验防止 hex 长度不够导致 NaN
-    if (hex.length < 6) return true; 
+    if (hex.length < 6) return true;
 
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
@@ -88,10 +78,7 @@ export function useTheme(): ThemeComposable {
    * 更新单个颜色配置
    */
   const updateColor = (key: keyof ColorConfig, value: string): void => {
-    colors.value[key] = value;
-    if (mode.value !== 'custom') {
-      mode.value = 'custom';
-    }
+    settingsStore.updateColor(key, value);
     applyTheme();
   };
 
@@ -99,7 +86,7 @@ export function useTheme(): ThemeComposable {
    * 更新样式配置
    */
   const updateStyle = (key: keyof StyleConfig, value: number): void => {
-    styles.value[key] = value;
+    settingsStore.updateStyle(key, value);
     applyTheme();
   };
 
@@ -107,70 +94,58 @@ export function useTheme(): ThemeComposable {
    * 设置主题模式
    */
   const setThemeMode = (newMode: ThemeMode): void => {
-    mode.value = newMode;
-
+    settingsStore.setThemeMode(newMode);
+    
+    // 根据模式更新颜色（不触发自动切换到 custom）
     if (newMode === 'light') {
-      colors.value = { ...LIGHT_THEME };
+      Object.keys(LIGHT_THEME).forEach(key => {
+        settingsStore.updateColorOnly(key as keyof ColorConfig, LIGHT_THEME[key as keyof ColorConfig]);
+      });
     } else if (newMode === 'dark') {
-      colors.value = { ...DARK_THEME };
+      Object.keys(DARK_THEME).forEach(key => {
+        settingsStore.updateColorOnly(key as keyof ColorConfig, DARK_THEME[key as keyof ColorConfig]);
+      });
     }
-    // custom 模式保持当前颜色
-
+    // custom 模式下保持当前颜色
+    
     applyTheme();
-    // 建议：切换模式后自动保存，或者由调用者决定
-    // saveTheme(); 
   };
 
   /**
-   * 保存主题配置到 localStorage
+   * 保存主题配置
    */
   const saveTheme = (): void => {
-    const config: ThemeConfig = {
-      mode: mode.value,
-      colors: colors.value,
-      styles: styles.value
-    };
-    storage.set(THEME_STORAGE_KEY, config);
+    settingsStore.saveSettings();
   };
 
   /**
    * 从 localStorage 加载主题配置
    */
   const loadTheme = (): void => {
-    const savedConfig = storage.get<ThemeConfig>(THEME_STORAGE_KEY);
+    settingsStore.loadSettings();
     
-    if (savedConfig) {
-      mode.value = savedConfig.mode || 'light';
-      
-      // 3. 修改：对象合并策略
-      // 如果 savedConfig.colors 里面缺少某个字段（比如版本迭代新增了颜色），
-      // 使用 ...LIGHT_THEME 兜底，防止出现 undefined
-      colors.value = { 
-        ...LIGHT_THEME, 
-        ...(savedConfig.colors || {}) 
-      };
-      
-      styles.value = { 
-        ...DEFAULT_STYLES, 
-        ...(savedConfig.styles || {}) 
-      };
-      
-      applyTheme();
-    } else {
-      // 如果没有保存的主题，应用默认主题（明亮）
-      resetTheme();
+    // 根据加载的模式应用对应的主题
+    const currentMode = settingsStore.themeMode;
+    if (currentMode === 'light') {
+      Object.keys(LIGHT_THEME).forEach(key => {
+        settingsStore.updateColorOnly(key as keyof ColorConfig, LIGHT_THEME[key as keyof ColorConfig]);
+      });
+    } else if (currentMode === 'dark') {
+      Object.keys(DARK_THEME).forEach(key => {
+        settingsStore.updateColorOnly(key as keyof ColorConfig, DARK_THEME[key as keyof ColorConfig]);
+      });
     }
+    // custom 模式下，colors 已经在 loadSettings 中加载
+    
+    applyTheme();
   };
 
   /**
    * 重置为默认主题
    */
   const resetTheme = (): void => {
-    mode.value = 'light';
-    colors.value = { ...LIGHT_THEME };
-    styles.value = { ...DEFAULT_STYLES };
+    settingsStore.resetSettings();
     applyTheme();
-    saveTheme();
   };
 
   return {

@@ -7,6 +7,8 @@
 
 import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
 import { useTimeStore } from '@/stores/time';
+import { useSettingsStore } from '@/stores/settings';
+import { playSound } from '@/utils/soundUtils';
 
 interface TimerComposable {
   totalSeconds: Ref<number>;
@@ -28,6 +30,7 @@ const endTime = ref<number>(0); // 结束时间戳
 
 export function useTimer(): TimerComposable {
   const timeStore = useTimeStore();
+  const settingsStore = useSettingsStore();
 
   /**
    * 格式化显示时间 (MM:SS)
@@ -59,6 +62,11 @@ export function useTimer(): TimerComposable {
       // 倒计时结束
       remainingSeconds.value = 0;
       pause();
+      
+      // 播放提示音
+      if (settingsStore.soundEnabled && settingsStore.timerEndSoundEnabled) {
+        playSound(settingsStore.soundType, settingsStore.soundRepeatCount);
+      }
     } else {
       remainingSeconds.value = remaining;
     }

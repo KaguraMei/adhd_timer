@@ -183,6 +183,98 @@
             </div>
           </section>
 
+          <!-- 音效设置 -->
+          <section class="settings-section">
+            <h3>音效设置</h3>
+            
+            <div class="toggle-group">
+              <label for="soundEnabled">
+                <span>启用音效</span>
+                <span class="toggle-description">控制所有音效的总开关</span>
+              </label>
+              <label class="toggle-switch">
+                <input
+                  id="soundEnabled"
+                  type="checkbox"
+                  :checked="soundEnabled"
+                  @change="handleSoundToggle"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-group" style="margin-top: var(--spacing-md);">
+              <label for="timerEndSoundEnabled">
+                <span>倒计时结束提示音</span>
+                <span class="toggle-description">倒计时结束时播放提示音</span>
+              </label>
+              <label class="toggle-switch">
+                <input
+                  id="timerEndSoundEnabled"
+                  type="checkbox"
+                  :checked="timerEndSoundEnabled"
+                  :disabled="!soundEnabled"
+                  @change="handleTimerEndSoundToggle"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- 音效类型选择 -->
+            <div class="sound-type-selector" style="margin-top: var(--spacing-md);">
+              <label for="soundType" class="sound-type-label">
+                音效类型
+              </label>
+              <select
+                id="soundType"
+                :value="soundType"
+                @change="handleSoundTypeChange"
+                :disabled="!soundEnabled || !timerEndSoundEnabled"
+                class="sound-type-select"
+              >
+                <option
+                  v-for="type in soundTypes"
+                  :key="type.value"
+                  :value="type.value"
+                >
+                  {{ type.label }}
+                </option>
+              </select>
+              <p class="sound-type-description">
+                {{ soundTypes.find(t => t.value === soundType)?.description }}
+              </p>
+            </div>
+
+            <!-- 重复次数 -->
+            <div class="slider-group" style="margin-top: var(--spacing-md);">
+              <label for="soundRepeatCount">
+                重复次数: <span class="value">{{ soundRepeatCount }} 次</span>
+              </label>
+              <input
+                id="soundRepeatCount"
+                type="range"
+                min="1"
+                max="5"
+                :value="soundRepeatCount"
+                @input="handleSoundRepeatCountChange"
+                :disabled="!soundEnabled || !timerEndSoundEnabled"
+                class="slider"
+              />
+              <p class="sound-type-description" style="margin-top: var(--spacing-xs);">
+                音效将重复播放 {{ soundRepeatCount }} 次，每次间隔 1.5 秒
+              </p>
+            </div>
+
+            <button 
+              class="button button-secondary" 
+              @click="handleTestSound"
+              :disabled="!soundEnabled || !timerEndSoundEnabled"
+              style="margin-top: var(--spacing-md); width: 100%;"
+            >
+              🔊 测试音效
+            </button>
+          </section>
+
           <!-- 每日开始时间设置 -->
           <section class="settings-section">
             <h3>每日开始时间</h3>
@@ -255,6 +347,7 @@ import { onMounted, onUnmounted, computed } from 'vue';
 import { useTheme } from '../../composables/useTheme';
 import { useAnimation } from '../../composables/useAnimation';
 import { useSettingsStore } from '../../stores/settings';
+import { playSound, getSoundTypes, type SoundType } from '../../utils/soundUtils';
 import IOSTimePicker from '../shared/IOSTimePicker.vue';
 import type { ColorConfig, StyleConfig } from '../../types/theme';
 
@@ -272,6 +365,13 @@ const emit = defineEmits<Emits>();
 const { mode, colors, styles, updateColor, updateStyle, setThemeMode, saveTheme, resetTheme } = useTheme();
 const { animationsEnabled, toggleAnimations } = useAnimation();
 const settingsStore = useSettingsStore();
+
+// 音效设置
+const soundEnabled = computed(() => settingsStore.soundEnabled);
+const timerEndSoundEnabled = computed(() => settingsStore.timerEndSoundEnabled);
+const soundType = computed(() => settingsStore.soundType);
+const soundRepeatCount = computed(() => settingsStore.soundRepeatCount);
+const soundTypes = getSoundTypes();
 
 // 每日开始时间 - 使用 computed 确保响应式
 const dayStartHour = computed({
@@ -351,6 +451,44 @@ const handleDayStartHourChange = (value: number): void => {
 const handleDayStartMinuteChange = (value: number): void => {
   dayStartMinute.value = value;
 };
+
+/**
+ * 处理音效开关切换
+ */
+const handleSoundToggle = (): void => {
+  settingsStore.setSoundEnabled(!soundEnabled.value);
+};
+
+/**
+ * 处理倒计时结束音效切换
+ */
+const handleTimerEndSoundToggle = (): void => {
+  settingsStore.setTimerEndSoundEnabled(!timerEndSoundEnabled.value);
+};
+
+/**
+ * 处理音效类型变化
+ */
+const handleSoundTypeChange = (event: Event): void => {
+  const target = event.target as HTMLSelectElement;
+  settingsStore.setSoundType(target.value as SoundType);
+};
+
+/**
+ * 处理音效重复次数变化
+ */
+const handleSoundRepeatCountChange = (event: Event): void => {
+  const target = event.target as HTMLInputElement;
+  settingsStore.setSoundRepeatCount(Number(target.value));
+};
+
+/**
+ * 测试音效
+ */
+const handleTestSound = (): void => {
+  playSound(soundType.value, soundRepeatCount.value);
+};
+
 
 /**
  * 处理日期计算模式切换
@@ -678,6 +816,51 @@ onUnmounted(() => {
   transform: translateX(24px);
 }
 
+/* 音效类型选择器 */
+.sound-type-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.sound-type-label {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sound-type-select {
+  padding: var(--spacing-sm);
+  background-color: var(--color-background);
+  border: 2px solid var(--color-inactive);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.sound-type-select:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.sound-type-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.sound-type-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sound-type-description {
+  color: var(--color-inactive);
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.5;
+}
+
 /* 时间预览（大号） */
 .time-preview-large {
   text-align: center;
@@ -693,6 +876,7 @@ onUnmounted(() => {
 
 /* 预览 */
 .preview-box {
+  position: relative;
   background-color: var(--color-background);
   padding: var(--spacing-md);
   border-radius: var(--border-radius-sm);
@@ -726,6 +910,32 @@ onUnmounted(() => {
 
 .preview-grid-item.highlight {
   background-color: var(--color-primary);
+}
+
+/* 彩蛋按钮 */
+.easter-egg-button {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+}
+
+.easter-egg-button:hover {
+  opacity: 1;
+  transform: scale(1.2) rotate(10deg);
+  background: var(--color-primary);
+}
+
+.easter-egg-button:active {
+  transform: scale(0.9);
 }
 
 /* 底部按钮 */

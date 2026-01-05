@@ -13,6 +13,12 @@ interface Settings {
   animations: {
     enabled: boolean;
   };
+  sound: {
+    enabled: boolean;
+    timerEndSound: boolean;
+    soundType: 'bell' | 'chime' | 'beep' | 'ding' | 'gentle';
+    repeatCount: number;
+  };
   dayStartTime: {
     hour: number;
     minute: number;
@@ -38,6 +44,12 @@ const defaultSettings = {
   animations: {
     enabled: true
   },
+  sound: {
+    enabled: true,
+    timerEndSound: true,
+    soundType: 'bell' as 'bell' | 'chime' | 'beep' | 'ding' | 'gentle',
+    repeatCount: 1
+  },
   dayStartTime: {
     hour: 0,
     minute: 0,
@@ -53,6 +65,12 @@ export const useSettingsStore = defineStore('settings', () => {
   
   // 动画设置
   const animationsEnabled = ref(defaultSettings.animations.enabled);
+  
+  // 音效设置
+  const soundEnabled = ref(defaultSettings.sound.enabled);
+  const timerEndSoundEnabled = ref(defaultSettings.sound.timerEndSound);
+  const soundType = ref(defaultSettings.sound.soundType);
+  const soundRepeatCount = ref(defaultSettings.sound.repeatCount);
   
   // 每日开始时间设置
   const dayStartTime = ref({ ...defaultSettings.dayStartTime });
@@ -84,6 +102,14 @@ export const useSettingsStore = defineStore('settings', () => {
         // 加载动画设置
         if (settings.animations !== undefined) {
           animationsEnabled.value = settings.animations.enabled;
+        }
+        
+        // 加载音效设置
+        if (settings.sound !== undefined) {
+          soundEnabled.value = settings.sound.enabled ?? defaultSettings.sound.enabled;
+          timerEndSoundEnabled.value = settings.sound.timerEndSound ?? defaultSettings.sound.timerEndSound;
+          soundType.value = settings.sound.soundType ?? defaultSettings.sound.soundType;
+          soundRepeatCount.value = settings.sound.repeatCount ?? defaultSettings.sound.repeatCount;
         }
         
         // 加载每日开始时间设置
@@ -120,6 +146,12 @@ export const useSettingsStore = defineStore('settings', () => {
         theme: themeData,
         animations: {
           enabled: animationsEnabled.value
+        },
+        sound: {
+          enabled: soundEnabled.value,
+          timerEndSound: timerEndSoundEnabled.value,
+          soundType: soundType.value,
+          repeatCount: soundRepeatCount.value
         },
         dayStartTime: { ...dayStartTime.value }
       };
@@ -183,6 +215,38 @@ export const useSettingsStore = defineStore('settings', () => {
   };
 
   /**
+   * 设置音效开关
+   */
+  const setSoundEnabled = (enabled: boolean): void => {
+    soundEnabled.value = enabled;
+    saveSettings();
+  };
+
+  /**
+   * 设置倒计时结束音效
+   */
+  const setTimerEndSoundEnabled = (enabled: boolean): void => {
+    timerEndSoundEnabled.value = enabled;
+    saveSettings();
+  };
+
+  /**
+   * 设置音效类型
+   */
+  const setSoundType = (type: 'bell' | 'chime' | 'beep' | 'ding' | 'gentle'): void => {
+    soundType.value = type;
+    saveSettings();
+  };
+
+  /**
+   * 设置音效重复次数
+   */
+  const setSoundRepeatCount = (count: number): void => {
+    soundRepeatCount.value = Math.max(1, Math.min(count, 5)); // 限制在1-5次
+    saveSettings();
+  };
+
+  /**
    * 设置每日开始时间
    */
   const setDayStartTime = (hour: number, minute: number, countAsPreviousDay?: boolean): void => {
@@ -202,6 +266,10 @@ export const useSettingsStore = defineStore('settings', () => {
     colors.value = { ...defaultSettings.theme.colors };
     styles.value = { ...defaultSettings.theme.styles };
     animationsEnabled.value = defaultSettings.animations.enabled;
+    soundEnabled.value = defaultSettings.sound.enabled;
+    timerEndSoundEnabled.value = defaultSettings.sound.timerEndSound;
+    soundType.value = defaultSettings.sound.soundType;
+    soundRepeatCount.value = defaultSettings.sound.repeatCount;
     dayStartTime.value = { ...defaultSettings.dayStartTime };
     saveSettings();
   };
@@ -212,6 +280,10 @@ export const useSettingsStore = defineStore('settings', () => {
     colors,
     styles,
     animationsEnabled,
+    soundEnabled,
+    timerEndSoundEnabled,
+    soundType,
+    soundRepeatCount,
     dayStartTime,
     
     // Actions
@@ -223,6 +295,10 @@ export const useSettingsStore = defineStore('settings', () => {
     updateStyle,
     toggleAnimations,
     setAnimationsEnabled,
+    setSoundEnabled,
+    setTimerEndSoundEnabled,
+    setSoundType,
+    setSoundRepeatCount,
     setDayStartTime,
     resetSettings
   };

@@ -17,27 +17,40 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useTimeCalc } from '@/composables/useTimeCalc';
+import { useTimeStore } from '@/stores/time';
 import GridDisplay from '@/components/shared/GridDisplay.vue';
 import ProgressBar from '@/components/shared/ProgressBar.vue';
 import StatsDisplay from '@/components/shared/StatsDisplay.vue';
 
 const { getCurrentDayOfYear, getDaysInYear } = useTimeCalc();
+const timeStore = useTimeStore();
 
 // 获取当前年份
-const currentYear = computed(() => new Date().getFullYear());
+const currentYear = computed(() => timeStore.year);
 
 // 获取当前月份名称
+// 依赖 monthString，只在月份变化时更新
 const currentMonthName = computed(() => {
+  // 触发响应式依赖
+  const monthStr = timeStore.monthString;
+  
   const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月',
     '7月', '8月', '9月', '10月', '11月', '12月'];
-  return monthNames[new Date().getMonth()];
+  // 从 monthString 解析月份 (格式: YYYY-M)
+  const parts = monthStr.split('-');
+  const month = parseInt(parts[1] || '1');
+  return monthNames[month - 1] || '1月';
 });
 
 // 获取今年的总天数（处理闰年）
 const daysInYear = computed(() => getDaysInYear(currentYear.value));
 
 // 获取当前是今年第几天
-const currentDayOfYear = computed(() => getCurrentDayOfYear());
+const currentDayOfYear = computed(() => {
+  // 依赖 dateString，每天变化时更新
+  timeStore.dateString;
+  return getCurrentDayOfYear();
+});
 
 // 计算进度百分比
 const progressPercentage = computed(() => {

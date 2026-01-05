@@ -186,7 +186,7 @@
           <!-- 每日开始时间设置 -->
           <section class="settings-section">
             <h3>每日开始时间</h3>
-             <p class="section-description">
+            <p class="section-description">
               设置每日开始的时间点，会影响"今日"、"本周"、"本月"等时间范围的判断
             </p>
             
@@ -199,6 +199,28 @@
             
             <div class="time-preview-large">
               {{ formatDayStartTime }}
+            </div>
+
+            <!-- 日期计算模式选择 -->
+            <div class="toggle-group" style="margin-top: var(--spacing-md);">
+              <label for="countAsPreviousDay">
+                <span>早于开始时间算作前一天</span>
+                <span class="toggle-description">
+                  {{ dayStartCountAsPreviousDay ? 
+                    `例如：${formatDayStartTime} 开始，之前的时间算作前一天` : 
+                    `例如：${formatDayStartTime} 开始，之后的时间算作新一天` 
+                  }}
+                </span>
+              </label>
+              <label class="toggle-switch">
+                <input
+                  id="countAsPreviousDay"
+                  type="checkbox"
+                  :checked="dayStartCountAsPreviousDay"
+                  @change="handleCountAsPreviousDayToggle"
+                />
+                <span class="toggle-slider"></span>
+              </label>
             </div>
           </section>
 
@@ -229,7 +251,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, computed } from 'vue';
 import { useTheme } from '../../composables/useTheme';
 import { useAnimation } from '../../composables/useAnimation';
 import { useSettingsStore } from '../../stores/settings';
@@ -251,9 +273,33 @@ const { mode, colors, styles, updateColor, updateStyle, setThemeMode, saveTheme,
 const { animationsEnabled, toggleAnimations } = useAnimation();
 const settingsStore = useSettingsStore();
 
-// 每日开始时间
-const dayStartHour = ref(settingsStore.dayStartTime.hour);
-const dayStartMinute = ref(settingsStore.dayStartTime.minute);
+// 每日开始时间 - 使用 computed 确保响应式
+const dayStartHour = computed({
+  get: () => settingsStore.dayStartTime.hour,
+  set: (value: number) => {
+    settingsStore.setDayStartTime(value, settingsStore.dayStartTime.minute);
+  }
+});
+
+const dayStartMinute = computed({
+  get: () => settingsStore.dayStartTime.minute,
+  set: (value: number) => {
+    settingsStore.setDayStartTime(settingsStore.dayStartTime.hour, value);
+  }
+});
+
+const dayStartCountAsPreviousDay = computed({
+  get: () => settingsStore.dayStartTime.countAsPreviousDay ?? true,
+  set: (value: boolean) => {
+    settingsStore.setDayStartTime(
+      settingsStore.dayStartTime.hour,
+      settingsStore.dayStartTime.minute,
+      value
+    );
+    // 立即保存
+    settingsStore.saveSettings();
+  }
+});
 
 // 格式化显示
 const formatDayStartTime = computed(() => {
@@ -297,7 +343,6 @@ const handleAnimationToggle = (): void => {
  */
 const handleDayStartHourChange = (value: number): void => {
   dayStartHour.value = value;
-  settingsStore.setDayStartTime(dayStartHour.value, dayStartMinute.value);
 };
 
 /**
@@ -305,7 +350,13 @@ const handleDayStartHourChange = (value: number): void => {
  */
 const handleDayStartMinuteChange = (value: number): void => {
   dayStartMinute.value = value;
-  settingsStore.setDayStartTime(dayStartHour.value, dayStartMinute.value);
+};
+
+/**
+ * 处理日期计算模式切换
+ */
+const handleCountAsPreviousDayToggle = (): void => {
+  dayStartCountAsPreviousDay.value = !dayStartCountAsPreviousDay.value;
 };
 
 /**
@@ -321,9 +372,7 @@ const handleSave = (): void => {
  */
 const handleReset = (): void => {
   resetTheme();
-  dayStartHour.value = 0;
-  dayStartMinute.value = 0;
-  settingsStore.setDayStartTime(0, 0);
+  settingsStore.setDayStartTime(0, 0, true);
 };
 
 /**
@@ -461,7 +510,7 @@ onUnmounted(() => {
 .theme-button.active {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
-  color: #000;
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -700,13 +749,15 @@ onUnmounted(() => {
 
 .button-primary {
   background-color: var(--color-primary);
-  color: #000;
+  color: #ffffff;
   font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .button-primary:hover {
-  opacity: 0.8;
+  opacity: 0.9;
   transform: none;
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
 }
 
 .button-secondary {

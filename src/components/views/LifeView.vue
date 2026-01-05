@@ -77,6 +77,8 @@ const formData = ref<LifeConfig>({
 // 计算已度过的年数
 const yearsLived = computed(() => {
   if (!config.value?.birthdate) return 0;
+  // 强制每次重新计算（触发响应式更新）
+  new Date().getTime();
   return calculateYearsLived(config.value.birthdate);
 });
 

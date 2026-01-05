@@ -18,29 +18,53 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useTimeCalc } from '@/composables/useTimeCalc';
+import { useTimeStore } from '@/stores/time';
 import GridDisplay from '@/components/shared/GridDisplay.vue';
 import ProgressBar from '@/components/shared/ProgressBar.vue';
 import StatsDisplay from '@/components/shared/StatsDisplay.vue';
 
 const { getCurrentDayOfMonth, getDaysInMonth } = useTimeCalc();
+const timeStore = useTimeStore();
 
 // 获取当前月份数据
-const currentDay = computed(() => getCurrentDayOfMonth());
-const daysInMonth = computed(() => getDaysInMonth());
+const currentDay = computed(() => {
+  // 依赖 dateString，每天变化时更新
+  timeStore.dateString;
+  return getCurrentDayOfMonth();
+});
+
+const daysInMonth = computed(() => {
+  // 依赖 monthString，每月变化时更新
+  timeStore.monthString;
+  return getDaysInMonth();
+});
 
 // 获取当前日期（如"1月15日"）
+// 依赖 dateString，只在日期变化时更新
 const currentDate = computed(() => {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const day = now.getDate();
+  // 触发响应式依赖
+  const dateStr = timeStore.dateString;
+  
+  // 使用 getCurrentDayOfMonth 获取调整后的日期
+  const day = getCurrentDayOfMonth();
+  // 从 dateString 解析月份 (格式: YYYY-M-D)
+  const parts = dateStr.split('-');
+  const month = parseInt(parts[1] || '1');
   return `${month}月${day}日`;
 });
 
 // 获取月份名称
+// 依赖 monthString，只在月份变化时更新
 const monthName = computed(() => {
+  // 触发响应式依赖
+  const monthStr = timeStore.monthString;
+  
   const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', 
                       '7月', '8月', '9月', '10月', '11月', '12月'];
-  return monthNames[new Date().getMonth()];
+  // 从 monthString 解析月份 (格式: YYYY-M)
+  const parts = monthStr.split('-');
+  const month = parseInt(parts[1] || '1');
+  return monthNames[month - 1] || '1月';
 });
 
 // 计算进度百分比

@@ -16,6 +16,7 @@ interface Settings {
   dayStartTime: {
     hour: number;
     minute: number;
+    countAsPreviousDay: boolean; // 早于开始时间是否算作前一天
   };
 }
 
@@ -39,7 +40,8 @@ const defaultSettings = {
   },
   dayStartTime: {
     hour: 0,
-    minute: 0
+    minute: 0,
+    countAsPreviousDay: true // 默认：早于开始时间算作前一天
   }
 };
 
@@ -183,8 +185,12 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * 设置每日开始时间
    */
-  const setDayStartTime = (hour: number, minute: number): void => {
-    dayStartTime.value = { hour, minute };
+  const setDayStartTime = (hour: number, minute: number, countAsPreviousDay?: boolean): void => {
+    dayStartTime.value = { 
+      hour, 
+      minute,
+      countAsPreviousDay: countAsPreviousDay ?? dayStartTime.value.countAsPreviousDay
+    };
     saveSettings();
   };
 

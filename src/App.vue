@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { type ViewMode } from './types/view';
 import { useTheme } from './composables/useTheme';
+import { useTimeStore } from './stores/time';
 import TabNavigation from './components/layout/TabNavigation.vue';
 import ViewContainer from './components/layout/ViewContainer.vue';
 import SettingsDrawer from './components/settings/SettingsDrawer.vue';
@@ -16,6 +17,9 @@ const showSettings = ref(false);
 
 // 使用主题 composable
 const { loadTheme } = useTheme();
+
+// 使用全局时间 store
+const timeStore = useTimeStore();
 
 /**
  * 切换视图
@@ -44,6 +48,17 @@ const closeSettings = (): void => {
 onMounted(() => {
   // 从 localStorage 加载主题并应用
   loadTheme();
+  
+  // 启动全局时间更新
+  timeStore.startTimeUpdates();
+});
+
+/**
+ * 组件卸载时清理
+ */
+onUnmounted(() => {
+  // 停止全局时间更新
+  timeStore.stopTimeUpdates();
 });
 </script>
 

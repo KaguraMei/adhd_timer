@@ -6,6 +6,7 @@
 export interface DayStartTime {
   hour: number;
   minute: number;
+  countAsPreviousDay?: boolean; // 早于开始时间是否算作前一天
 }
 
 /**
@@ -16,20 +17,39 @@ export interface DayStartTime {
  */
 export function getAdjustedDate(date: Date, dayStartTime: DayStartTime): Date {
   const adjusted = new Date(date);
-  
-  // 如果当前时间早于每日开始时间，则认为是前一天
+
   const currentHour = date.getHours();
   const currentMinute = date.getMinutes();
   const startHour = dayStartTime.hour;
   const startMinute = dayStartTime.minute;
-  
+
+  // ⚡️ 智能修正：如果设置的是 00:00，说明就是标准自然日
+  // 此时不需要任何逻辑偏移，直接返回原日期即可
+  // 这完美解决了 countAsPreviousDay: false 时 00:00 变成明天的问题
+  if (startHour === 0 && startMinute === 0) {
+    return adjusted;
+  }
+
   const currentMinutes = currentHour * 60 + currentMinute;
   const startMinutes = startHour * 60 + startMinute;
-  
-  if (currentMinutes < startMinutes) {
-    adjusted.setDate(adjusted.getDate() - 1);
+
+  // 根据配置决定如何调整日期
+  const countAsPreviousDay = dayStartTime.countAsPreviousDay ?? true;
+
+  if (countAsPreviousDay) {
+    // 模式 1：早于开始时间算作前一天
+    // 例如：23:00 开始，00:09 算作前一天
+    if (currentMinutes < startMinutes) {
+      adjusted.setDate(adjusted.getDate() - 1);
+    }
+  } else {
+    // 模式 2：晚于开始时间算作新一天
+    // 例如：23:00 开始，23:01 算作新一天
+    if (currentMinutes >= startMinutes) {
+      adjusted.setDate(adjusted.getDate() + 1);
+    }
   }
-  
+
   return adjusted;
 }
 
@@ -43,7 +63,7 @@ export function getAdjustedDate(date: Date, dayStartTime: DayStartTime): Date {
 export function isSameDay(date1: Date, date2: Date, dayStartTime: DayStartTime): boolean {
   const adjusted1 = getAdjustedDate(date1, dayStartTime);
   const adjusted2 = getAdjustedDate(date2, dayStartTime);
-  
+
   return (
     adjusted1.getFullYear() === adjusted2.getFullYear() &&
     adjusted1.getMonth() === adjusted2.getMonth() &&
@@ -61,7 +81,7 @@ export function isSameDay(date1: Date, date2: Date, dayStartTime: DayStartTime):
 export function isSameWeek(date1: Date, date2: Date, dayStartTime: DayStartTime): boolean {
   const adjusted1 = getAdjustedDate(date1, dayStartTime);
   const adjusted2 = getAdjustedDate(date2, dayStartTime);
-  
+
   // 获取周一作为一周的开始
   const getMonday = (d: Date): Date => {
     const day = d.getDay();
@@ -71,10 +91,10 @@ export function isSameWeek(date1: Date, date2: Date, dayStartTime: DayStartTime)
     monday.setHours(0, 0, 0, 0);
     return monday;
   };
-  
+
   const monday1 = getMonday(adjusted1);
   const monday2 = getMonday(adjusted2);
-  
+
   return monday1.getTime() === monday2.getTime();
 }
 
@@ -88,7 +108,7 @@ export function isSameWeek(date1: Date, date2: Date, dayStartTime: DayStartTime)
 export function isSameMonth(date1: Date, date2: Date, dayStartTime: DayStartTime): boolean {
   const adjusted1 = getAdjustedDate(date1, dayStartTime);
   const adjusted2 = getAdjustedDate(date2, dayStartTime);
-  
+
   return (
     adjusted1.getFullYear() === adjusted2.getFullYear() &&
     adjusted1.getMonth() === adjusted2.getMonth()
@@ -105,7 +125,7 @@ export function isSameMonth(date1: Date, date2: Date, dayStartTime: DayStartTime
 export function isSameYear(date1: Date, date2: Date, dayStartTime: DayStartTime): boolean {
   const adjusted1 = getAdjustedDate(date1, dayStartTime);
   const adjusted2 = getAdjustedDate(date2, dayStartTime);
-  
+
   return adjusted1.getFullYear() === adjusted2.getFullYear();
 }
 

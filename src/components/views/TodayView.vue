@@ -21,26 +21,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed } from 'vue';
 import GridDisplay from '../shared/GridDisplay.vue';
 import ProgressBar from '../shared/ProgressBar.vue';
 import StatsDisplay from '../shared/StatsDisplay.vue';
 import TimeBar from '../layout/TimeBar.vue';
 import TimeDisplay from '../shared/TimeDisplay.vue';
 import { useSettingsStore } from '../../stores/settings';
+import { useTimeStore } from '../../stores/time';
 
 const settingsStore = useSettingsStore();
-const currentTime = ref(new Date());
-let updateInterval: number | null = null;
-
-// 更新当前时间
-const updateCurrentTime = () => {
-  currentTime.value = new Date();
-};
+const timeStore = useTimeStore();
 
 // 获取当前小时（从每日开始时间算起）
+// 依赖 timestamp 确保每秒更新
 const currentHour = computed(() => {
-  const now = currentTime.value;
+  // 触发响应式依赖
+  timeStore.timestamp;
+  
+  const now = new Date();
   const startHour = settingsStore.dayStartTime.hour;
   const startMinute = settingsStore.dayStartTime.minute;
   
@@ -58,8 +57,12 @@ const currentHour = computed(() => {
 });
 
 // 计算进度百分比（从每日开始时间算起）
+// 依赖 timestamp 确保每秒更新
 const progressPercentage = computed(() => {
-  const now = currentTime.value;
+  // 触发响应式依赖
+  timeStore.timestamp;
+  
+  const now = new Date();
   const startHour = settingsStore.dayStartTime.hour;
   const startMinute = settingsStore.dayStartTime.minute;
   
@@ -77,8 +80,12 @@ const progressPercentage = computed(() => {
 });
 
 // 统计信息文本
+// 依赖 timestamp 确保每秒更新
 const statsText = computed(() => {
-  const now = currentTime.value;
+  // 触发响应式依赖
+  timeStore.timestamp;
+  
+  const now = new Date();
   const startHour = settingsStore.dayStartTime.hour;
   const startMinute = settingsStore.dayStartTime.minute;
   
@@ -95,16 +102,6 @@ const statsText = computed(() => {
   const minutes = elapsedMinutes % 60;
   
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} / 24小时`;
-});
-
-onMounted(() => {
-  updateInterval = window.setInterval(updateCurrentTime, 1000);
-});
-
-onUnmounted(() => {
-  if (updateInterval !== null) {
-    clearInterval(updateInterval);
-  }
 });
 </script>
 

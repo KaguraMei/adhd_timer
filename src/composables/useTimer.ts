@@ -2,9 +2,11 @@
  * useTimer - 倒计时管理 composable
  * 管理倒计时状态和逻辑
  * 使用单例模式确保状态在组件间共享
+ * 依赖全局时间 Store，避免创建独立定时器
  */
 
-import { ref, computed, type Ref, type ComputedRef } from 'vue';
+import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
+import { useTimeStore } from '@/stores/time';
 
 interface TimerComposable {
   totalSeconds: Ref<number>;
@@ -22,9 +24,11 @@ interface TimerComposable {
 const totalSeconds = ref<number>(0);
 const remainingSeconds = ref<number>(0);
 const isRunning = ref<boolean>(false);
-let intervalId: number | null = null;
+const endTime = ref<number>(0); // 结束时间戳
 
 export function useTimer(): TimerComposable {
+  const timeStore = useTimeStore();
+
   /**
    * 格式化显示时间 (MM:SS)
    */
@@ -44,14 +48,21 @@ export function useTimer(): TimerComposable {
   });
 
   /**
-   * 清除定时器
+   * 根据全局时间更新剩余秒数
    */
-  const clearTimer = (): void => {
-    if (intervalId !== null) {
-      clearInterval(intervalId);
-      intervalId = null;
+  watch(() => timeStore.timestamp, (currentTimestamp) => {
+    if (!isRunning.value || endTime.value === 0) return;
+
+    const remaining = Math.ceil((endTime.value - currentTimestamp) / 1000);
+    
+    if (remaining <= 0) {
+      // 倒计时结束
+      remainingSeconds.value = 0;
+      pause();
+    } else {
+      remainingSeconds.value = remaining;
     }
-  };
+  });
 
   /**
    * 开始倒计时
@@ -62,17 +73,8 @@ export function useTimer(): TimerComposable {
     }
 
     isRunning.value = true;
-    
-    clearTimer();
-    
-    intervalId = setInterval(() => {
-      if (remainingSeconds.value > 0) {
-        remainingSeconds.value--;
-      } else {
-        // 倒计时结束
-        pause();
-      }
-    }, 1000) as unknown as number;
+    // 计算结束时间戳
+    endTime.value = Date.now() + remainingSeconds.value * 1000;
   };
 
   /**
@@ -80,7 +82,7 @@ export function useTimer(): TimerComposable {
    */
   const pause = (): void => {
     isRunning.value = false;
-    clearTimer();
+    endTime.value = 0;
   };
 
   /**

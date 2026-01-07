@@ -1,345 +1,239 @@
 <template>
   <div v-if="visible" class="drawer-overlay" @click="handleClose">
     <div class="drawer-content" @click.stop>
-        <div class="drawer-header">
-          <h2>设置</h2>
-          <button class="close-button" @click="handleClose" aria-label="关闭">×</button>
-        </div>
+      <div class="drawer-header">
+        <h2>设置</h2>
+        <button class="close-button" @click="handleClose" aria-label="关闭">×</button>
+      </div>
 
-        <div class="drawer-body">
-          <!-- 主题模式选择 -->
-          <section class="settings-section">
-            <h3>主题模式</h3>
-            <div class="theme-mode-buttons">
-              <button
-                :class="['theme-button', { active: mode === 'light' }]"
-                @click="handleThemeModeChange('light')"
-              >
-                ☀️ 明亮
-              </button>
-              <button
-                :class="['theme-button', { active: mode === 'dark' }]"
-                @click="handleThemeModeChange('dark')"
-              >
-                🌙 暗黑
-              </button>
-              <button
-                :class="['theme-button', { active: mode === 'custom' }]"
-                @click="handleThemeModeChange('custom')"
-              >
-                🎨 自定义
-              </button>
-            </div>
-          </section>
-
-          <!-- 颜色配置 -->
-          <section v-if="mode === 'custom'" class="settings-section">
-            <h3>颜色配置</h3>
-            
-            <div class="color-input-group">
-              <label for="backgroundColor">背景色</label>
-              <div class="color-input-wrapper">
-                <input
-                  id="backgroundColor"
-                  type="color"
-                  :value="colors.backgroundColor"
-                  @input="handleColorChange('backgroundColor', $event)"
-                />
-                <input
-                  type="text"
-                  :value="colors.backgroundColor"
-                  @input="handleColorChange('backgroundColor', $event)"
-                  class="color-text-input"
-                />
-              </div>
-            </div>
-
-            <div class="color-input-group">
-              <label for="containerBackground">容器背景色</label>
-              <div class="color-input-wrapper">
-                <input
-                  id="containerBackground"
-                  type="color"
-                  :value="colors.containerBackground"
-                  @input="handleColorChange('containerBackground', $event)"
-                />
-                <input
-                  type="text"
-                  :value="colors.containerBackground"
-                  @input="handleColorChange('containerBackground', $event)"
-                  class="color-text-input"
-                />
-              </div>
-            </div>
-
-            <div class="color-input-group">
-              <label for="textColor">文本颜色</label>
-              <div class="color-input-wrapper">
-                <input
-                  id="textColor"
-                  type="color"
-                  :value="colors.textColor"
-                  @input="handleColorChange('textColor', $event)"
-                />
-                <input
-                  type="text"
-                  :value="colors.textColor"
-                  @input="handleColorChange('textColor', $event)"
-                  class="color-text-input"
-                />
-              </div>
-            </div>
-
-            <div class="color-input-group">
-              <label for="primaryColor">主题色</label>
-              <div class="color-input-wrapper">
-                <input
-                  id="primaryColor"
-                  type="color"
-                  :value="colors.primaryColor"
-                  @input="handleColorChange('primaryColor', $event)"
-                />
-                <input
-                  type="text"
-                  :value="colors.primaryColor"
-                  @input="handleColorChange('primaryColor', $event)"
-                  class="color-text-input"
-                />
-              </div>
-            </div>
-
-            <div class="color-input-group">
-              <label for="secondaryColor">次主题色</label>
-              <div class="color-input-wrapper">
-                <input
-                  id="secondaryColor"
-                  type="color"
-                  :value="colors.secondaryColor"
-                  @input="handleColorChange('secondaryColor', $event)"
-                />
-                <input
-                  type="text"
-                  :value="colors.secondaryColor"
-                  @input="handleColorChange('secondaryColor', $event)"
-                  class="color-text-input"
-                />
-              </div>
-            </div>
-          </section>
-
-          <!-- 样式配置 -->
-          <section class="settings-section">
-            <h3>样式配置</h3>
-            
-            <div class="slider-group">
-              <label for="gridSize">
-                方块大小: <span class="value">{{ styles.gridSize }}px</span>
-              </label>
-              <input
-                id="gridSize"
-                type="range"
-                min="10"
-                max="50"
-                :value="styles.gridSize"
-                @input="handleStyleChange('gridSize', $event)"
-                class="slider"
-              />
-            </div>
-
-            <div class="slider-group">
-              <label for="borderRadius">
-                圆角大小: <span class="value">{{ styles.borderRadius }}px</span>
-              </label>
-              <input
-                id="borderRadius"
-                type="range"
-                min="0"
-                max="20"
-                :value="styles.borderRadius"
-                @input="handleStyleChange('borderRadius', $event)"
-                class="slider"
-              />
-            </div>
-          </section>
-
-          <!-- 动画设置 -->
-          <section class="settings-section">
-            <h3>动画设置</h3>
-            
-            <div class="toggle-group">
-              <label for="animationsEnabled">
-                <span>启用动画效果</span>
-                <span class="toggle-description">关闭后将使用简化版本，提升性能</span>
-              </label>
-              <label class="toggle-switch">
-                <input
-                  id="animationsEnabled"
-                  type="checkbox"
-                  :checked="animationsEnabled"
-                  @change="handleAnimationToggle"
-                />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </section>
-
-          <!-- 音效设置 -->
-          <section class="settings-section">
-            <h3>音效设置</h3>
-            
-            <div class="toggle-group">
-              <label for="soundEnabled">
-                <span>启用音效</span>
-                <span class="toggle-description">控制所有音效的总开关</span>
-              </label>
-              <label class="toggle-switch">
-                <input
-                  id="soundEnabled"
-                  type="checkbox"
-                  :checked="soundEnabled"
-                  @change="handleSoundToggle"
-                />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div class="toggle-group" style="margin-top: var(--spacing-md);">
-              <label for="timerEndSoundEnabled">
-                <span>倒计时结束提示音</span>
-                <span class="toggle-description">倒计时结束时播放提示音</span>
-              </label>
-              <label class="toggle-switch">
-                <input
-                  id="timerEndSoundEnabled"
-                  type="checkbox"
-                  :checked="timerEndSoundEnabled"
-                  :disabled="!soundEnabled"
-                  @change="handleTimerEndSoundToggle"
-                />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-
-            <!-- 音效类型选择 -->
-            <div class="sound-type-selector" style="margin-top: var(--spacing-md);">
-              <label for="soundType" class="sound-type-label">
-                音效类型
-              </label>
-              <select
-                id="soundType"
-                :value="soundType"
-                @change="handleSoundTypeChange"
-                :disabled="!soundEnabled || !timerEndSoundEnabled"
-                class="sound-type-select"
-              >
-                <option
-                  v-for="type in soundTypes"
-                  :key="type.value"
-                  :value="type.value"
-                >
-                  {{ type.label }}
-                </option>
-              </select>
-              <p class="sound-type-description">
-                {{ soundTypes.find(t => t.value === soundType)?.description }}
-              </p>
-            </div>
-
-            <!-- 重复次数 -->
-            <div class="slider-group" style="margin-top: var(--spacing-md);">
-              <label for="soundRepeatCount">
-                重复次数: <span class="value">{{ soundRepeatCount }} 次</span>
-              </label>
-              <input
-                id="soundRepeatCount"
-                type="range"
-                min="1"
-                max="5"
-                :value="soundRepeatCount"
-                @input="handleSoundRepeatCountChange"
-                :disabled="!soundEnabled || !timerEndSoundEnabled"
-                class="slider"
-              />
-              <p class="sound-type-description" style="margin-top: var(--spacing-xs);">
-                音效将重复播放 {{ soundRepeatCount }} 次，每次间隔 1.5 秒
-              </p>
-            </div>
-
-            <button 
-              class="button button-secondary" 
-              @click="handleTestSound"
-              :disabled="!soundEnabled || !timerEndSoundEnabled"
-              style="margin-top: var(--spacing-md); width: 100%;"
-            >
-              🔊 测试音效
+      <div class="drawer-body">
+        <!-- 主题模式选择 -->
+        <section class="settings-section">
+          <h3>主题模式</h3>
+          <div class="theme-mode-buttons">
+            <button :class="['theme-button', { active: mode === 'light' }]" @click="handleThemeModeChange('light')">
+              ☀️ 明亮
             </button>
-          </section>
+            <button :class="['theme-button', { active: mode === 'dark' }]" @click="handleThemeModeChange('dark')">
+              🌙 暗黑
+            </button>
+            <button :class="['theme-button', { active: mode === 'custom' }]" @click="handleThemeModeChange('custom')">
+              🎨 自定义
+            </button>
+          </div>
+        </section>
 
-          <!-- 每日开始时间设置 -->
-          <section class="settings-section">
-            <h3>每日开始时间</h3>
-            <p class="section-description">
-              设置每日开始的时间点，会影响"今日"、"本周"、"本月"等时间范围的判断
+        <!-- 颜色配置 -->
+        <section v-if="mode === 'custom'" class="settings-section">
+          <h3>颜色配置</h3>
+
+          <div class="color-input-group">
+            <label for="backgroundColor">背景色</label>
+            <div class="color-input-wrapper">
+              <input id="backgroundColor" type="color" :value="colors.backgroundColor"
+                @input="handleColorChange('backgroundColor', $event)" />
+              <input type="text" :value="colors.backgroundColor" @input="handleColorChange('backgroundColor', $event)"
+                class="color-text-input" />
+            </div>
+          </div>
+
+          <div class="color-input-group">
+            <label for="containerBackground">容器背景色</label>
+            <div class="color-input-wrapper">
+              <input id="containerBackground" type="color" :value="colors.containerBackground"
+                @input="handleColorChange('containerBackground', $event)" />
+              <input type="text" :value="colors.containerBackground"
+                @input="handleColorChange('containerBackground', $event)" class="color-text-input" />
+            </div>
+          </div>
+
+          <div class="color-input-group">
+            <label for="textColor">文本颜色</label>
+            <div class="color-input-wrapper">
+              <input id="textColor" type="color" :value="colors.textColor"
+                @input="handleColorChange('textColor', $event)" />
+              <input type="text" :value="colors.textColor" @input="handleColorChange('textColor', $event)"
+                class="color-text-input" />
+            </div>
+          </div>
+
+          <div class="color-input-group">
+            <label for="primaryColor">主题色</label>
+            <div class="color-input-wrapper">
+              <input id="primaryColor" type="color" :value="colors.primaryColor"
+                @input="handleColorChange('primaryColor', $event)" />
+              <input type="text" :value="colors.primaryColor" @input="handleColorChange('primaryColor', $event)"
+                class="color-text-input" />
+            </div>
+          </div>
+
+          <div class="color-input-group">
+            <label for="secondaryColor">次主题色</label>
+            <div class="color-input-wrapper">
+              <input id="secondaryColor" type="color" :value="colors.secondaryColor"
+                @input="handleColorChange('secondaryColor', $event)" />
+              <input type="text" :value="colors.secondaryColor" @input="handleColorChange('secondaryColor', $event)"
+                class="color-text-input" />
+            </div>
+          </div>
+        </section>
+
+        <!-- 样式配置 -->
+        <section class="settings-section">
+          <h3>样式配置</h3>
+
+          <div class="slider-group">
+            <label for="gridSize">
+              方块大小: <span class="value">{{ styles.gridSize }}px</span>
+            </label>
+            <input id="gridSize" type="range" min="10" max="50" :value="styles.gridSize"
+              @input="handleStyleChange('gridSize', $event)" class="slider" />
+          </div>
+
+          <div class="slider-group">
+            <label for="borderRadius">
+              圆角大小: <span class="value">{{ styles.borderRadius }}px</span>
+            </label>
+            <input id="borderRadius" type="range" min="0" max="20" :value="styles.borderRadius"
+              @input="handleStyleChange('borderRadius', $event)" class="slider" />
+          </div>
+        </section>
+
+        <!-- 动画设置 -->
+        <section class="settings-section">
+          <h3>动画设置</h3>
+
+          <div class="toggle-group">
+            <label for="animationsEnabled">
+              <span>启用动画效果</span>
+              <span class="toggle-description">关闭后将使用简化版本，提升性能</span>
+            </label>
+            <label class="toggle-switch">
+              <input id="animationsEnabled" type="checkbox" :checked="animationsEnabled"
+                @change="handleAnimationToggle" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- 音效设置 -->
+        <section class="settings-section">
+          <h3>音效设置</h3>
+
+          <div class="toggle-group">
+            <label for="soundEnabled">
+              <span>启用音效</span>
+              <span class="toggle-description">控制所有音效的总开关</span>
+            </label>
+            <label class="toggle-switch">
+              <input id="soundEnabled" type="checkbox" :checked="soundEnabled" @change="handleSoundToggle" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-group" style="margin-top: var(--spacing-md);">
+            <label for="timerEndSoundEnabled">
+              <span>倒计时结束提示音</span>
+              <span class="toggle-description">倒计时结束时播放提示音</span>
+            </label>
+            <label class="toggle-switch">
+              <input id="timerEndSoundEnabled" type="checkbox" :checked="timerEndSoundEnabled" :disabled="!soundEnabled"
+                @change="handleTimerEndSoundToggle" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- 音效类型选择 -->
+          <div class="sound-type-selector" style="margin-top: var(--spacing-md);">
+            <label for="soundType" class="sound-type-label">
+              音效类型
+            </label>
+            <select id="soundType" :value="soundType" @change="handleSoundTypeChange"
+              :disabled="!soundEnabled || !timerEndSoundEnabled" class="sound-type-select">
+              <option v-for="type in soundTypes" :key="type.value" :value="type.value">
+                {{ type.label }}
+              </option>
+            </select>
+            <p class="sound-type-description">
+              {{soundTypes.find(t => t.value === soundType)?.description}}
             </p>
-            
-            <IOSTimePicker
-              :hour="dayStartHour"
-              :minute="dayStartMinute"
-              @update:hour="handleDayStartHourChange"
-              @update:minute="handleDayStartMinuteChange"
-            />
-            
-            <div class="time-preview-large">
-              {{ formatDayStartTime }}
-            </div>
+          </div>
 
-            <!-- 日期计算模式选择 -->
-            <div class="toggle-group" style="margin-top: var(--spacing-md);">
-              <label for="countAsPreviousDay">
-                <span>早于开始时间算作前一天</span>
-                <span class="toggle-description">
-                  {{ dayStartCountAsPreviousDay ? 
-                    `例如：${formatDayStartTime} 开始，之前的时间算作前一天` : 
-                    `例如：${formatDayStartTime} 开始，之后的时间算作新一天` 
-                  }}
-                </span>
-              </label>
-              <label class="toggle-switch">
-                <input
-                  id="countAsPreviousDay"
-                  type="checkbox"
-                  :checked="dayStartCountAsPreviousDay"
-                  @change="handleCountAsPreviousDayToggle"
-                />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </section>
+          <!-- 重复次数 -->
+          <div class="slider-group" style="margin-top: var(--spacing-md);">
+            <label for="soundRepeatCount">
+              重复次数: <span class="value">{{ soundRepeatCount }} 次</span>
+            </label>
+            <input id="soundRepeatCount" type="range" min="1" max="5" :value="soundRepeatCount"
+              @input="handleSoundRepeatCountChange" :disabled="!soundEnabled || !timerEndSoundEnabled" class="slider" />
+            <p class="sound-type-description" style="margin-top: var(--spacing-xs);">
+              音效将重复播放 {{ soundRepeatCount }} 次，每次间隔 1.5 秒
+            </p>
+          </div>
 
-          <!-- 预览 -->
-          <section class="settings-section">
-            <h3>预览</h3>
-            <div class="preview-box">
-              <div class="preview-text">示例文本</div>
-              <div class="preview-grid">
-                <div class="preview-grid-item inactive"></div>
-                <div class="preview-grid-item active"></div>
-                <div class="preview-grid-item highlight"></div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <div class="drawer-footer">
-          <button class="button button-secondary" @click="handleReset">
-            恢复默认
+          <button class="button button-secondary" @click="handleTestSound"
+            :disabled="!soundEnabled || !timerEndSoundEnabled" style="margin-top: var(--spacing-md); width: 100%;">
+            🔊 测试音效
           </button>
-          <button class="button button-primary" @click="handleSave">
-            保存
-          </button>
-        </div>
+        </section>
+
+        <!-- 每日开始时间设置 -->
+        <section class="settings-section">
+          <h3>每日开始时间</h3>
+          <p class="section-description">
+            设置每日开始的时间点，会影响"今日"、"本周"、"本月"等时间范围的判断
+          </p>
+
+          <IOSTimePicker :hour="dayStartHour" :minute="dayStartMinute" @update:hour="handleDayStartHourChange"
+            @update:minute="handleDayStartMinuteChange" />
+
+          <div class="time-preview-large">
+            {{ formatDayStartTime }}
+          </div>
+
+          <!-- 日期计算模式选择 -->
+          <div class="toggle-group" style="margin-top: var(--spacing-md);">
+            <label for="countAsPreviousDay">
+              <span>早于开始时间算作前一天</span>
+              <span class="toggle-description">
+                {{ dayStartCountAsPreviousDay ?
+                  `例如：${formatDayStartTime} 开始，之前的时间算作前一天` :
+                  `例如：${formatDayStartTime} 开始，之后的时间算作新一天`
+                }}
+              </span>
+            </label>
+            <label class="toggle-switch">
+              <input id="countAsPreviousDay" type="checkbox" :checked="dayStartCountAsPreviousDay"
+                @change="handleCountAsPreviousDayToggle" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- 预览 -->
+        <section class="settings-section">
+          <h3>预览</h3>
+          <div class="preview-box">
+            <div class="preview-text">示例文本</div>
+            <div class="preview-grid">
+              <div class="preview-grid-item inactive"></div>
+              <div class="preview-grid-item active"></div>
+              <div class="preview-grid-item highlight"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="button button-secondary" @click="handleReset">
+          恢复默认
+        </button>
+        <button class="button button-primary" @click="handleSave">
+          保存
+        </button>
       </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -567,7 +461,10 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
+  padding-top: max(var(--safe-area-inset-top), var(--spacing-md));
+  padding-bottom: var(--spacing-md);
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
   border-bottom: 1px solid var(--color-inactive);
   flex-shrink: 0;
 }
@@ -751,14 +648,14 @@ onUnmounted(() => {
   gap: var(--spacing-md);
 }
 
-.toggle-group > label:first-child {
+.toggle-group>label:first-child {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.toggle-group > label:first-child > span:first-child {
+.toggle-group>label:first-child>span:first-child {
   color: var(--color-text);
   font-size: 14px;
   font-weight: 500;
@@ -808,11 +705,11 @@ onUnmounted(() => {
   border-radius: 50%;
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
   background-color: var(--color-primary);
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
+.toggle-switch input:checked+.toggle-slider:before {
   transform: translateX(24px);
 }
 

@@ -48,7 +48,7 @@ const closeSettings = (): void => {
 onMounted(() => {
   // 从 localStorage 加载主题并应用
   loadTheme();
-  
+
   // 启动全局时间更新
   timeStore.startTimeUpdates();
 });
@@ -65,19 +65,12 @@ onUnmounted(() => {
 <template>
   <div class="app-container">
     <!-- 可拖动的设置按钮 -->
-    <DraggableButton
-      aria-label="打开设置"
-      storage-key="settings-button-position"
-      @click="toggleSettings"
-    >
+    <DraggableButton aria-label="打开设置" storage-key="settings-button-position" @click="toggleSettings">
       ⚙️
     </DraggableButton>
 
     <!-- 标签导航 -->
-    <TabNavigation 
-      :current-view="currentView" 
-      @change="switchView" 
-    />
+    <TabNavigation :current-view="currentView" @change="switchView" />
 
     <!-- 视图容器 -->
     <ViewContainer :current-view="currentView" />
@@ -86,17 +79,14 @@ onUnmounted(() => {
     <AppFooter />
 
     <!-- 设置抽屉 -->
-    <SettingsDrawer 
-      :visible="showSettings" 
-      @close="closeSettings" 
-    />
+    <SettingsDrawer :visible="showSettings" @close="closeSettings" />
   </div>
 </template>
 
 <style scoped>
 .app-container {
   width: 100%;
-  flex: 1; 
+  flex: 1;
   display: flex;
   flex-direction: column;
   background-color: var(--color-background);

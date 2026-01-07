@@ -1,14 +1,8 @@
 <template>
   <div class="tab-navigation">
-    <button
-      v-for="tab in tabs"
-      :key="tab.mode"
-      :class="['tab-button', { active: currentView === tab.mode }]"
-      :aria-selected="currentView === tab.mode"
-      :aria-label="`切换到${tab.label}视图`"
-      role="tab"
-      @click="handleTabClick(tab.mode)"
-    >
+    <button v-for="tab in tabs" :key="tab.mode" :class="['tab-button', { active: currentView === tab.mode }]"
+      :aria-selected="currentView === tab.mode" :aria-label="`切换到${tab.label}视图`" role="tab"
+      @click="handleTabClick(tab.mode)">
       {{ tab.label }}
     </button>
   </div>
@@ -59,7 +53,10 @@ watch(() => props.currentView, async () => {
   display: flex;
   justify-content: center;
   gap: var(--spacing-lg, 40px);
-  padding: var(--spacing-md, 20px);
+  padding-top: max(var(--safe-area-inset-top), var(--spacing-md));
+  padding-bottom: var(--spacing-md);
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
   flex-wrap: wrap;
 }
 
@@ -67,7 +64,8 @@ watch(() => props.currentView, async () => {
   position: relative;
   padding: 10px 0;
   background-color: transparent;
-  color: var(--color-inactive, #666); /* 👈 跟随主题的未选中颜色 */
+  color: var(--color-inactive, #666);
+  /* 👈 跟随主题的未选中颜色 */
   border: none;
   font-size: 18px;
   cursor: pointer;
@@ -84,13 +82,14 @@ watch(() => props.currentView, async () => {
   bottom: 0;
   width: 100%;
   height: 3px;
-  background-color: var(--color-primary); /* 👈 跟随主题的主色 */
+  background-color: var(--color-primary);
+  /* 👈 跟随主题的主色 */
   transform: scaleX(0);
   transition: transform var(--transition-fast, 0.3s) ease;
 }
 
 .tab-button:hover {
-  color: var(--color-text); /* 👈 hover 时使用主题文字颜色 */
+  color: var(--color-text);
 }
 
 .tab-button:hover::after {
@@ -106,7 +105,8 @@ watch(() => props.currentView, async () => {
 
 /* 选中状态 */
 .tab-button.active {
-  color: var(--color-text); /* 👈 选中时使用主题文字颜色 */
+  color: var(--color-text);
+  /* 👈 选中时使用主题文字颜色 */
   font-weight: 600;
 }
 
@@ -118,7 +118,6 @@ watch(() => props.currentView, async () => {
 @media (max-width: 480px) {
   .tab-navigation {
     gap: var(--spacing-md, 30px);
-    padding: var(--spacing-sm, 15px);
   }
 
   .tab-button {

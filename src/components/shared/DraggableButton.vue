@@ -243,6 +243,9 @@ onUnmounted(() => {
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  /* 确保不会被状态栏遮挡 */
+  margin-top: env(safe-area-inset-top, 0px);
+  margin-right: env(safe-area-inset-right, 0px);
 }
 
 .draggable-button:hover {

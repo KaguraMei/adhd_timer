@@ -9,13 +9,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { computed } from 'vue';
+import { useTimeStore } from '../../stores/time';
 
-const hours = ref('00');
-const minutes = ref('00');
-const seconds = ref('00');
-
-let updateInterval: number | null = null;
+const timeStore = useTimeStore();
 
 /**
  * 格式化数字为两位
@@ -25,24 +22,24 @@ const pad = (num: number): string => {
 };
 
 /**
- * 更新时间显示
+ * 使用全局时间存储，响应式更新
  */
-const updateTime = () => {
-  const now = new Date();
-  hours.value = pad(now.getHours());
-  minutes.value = pad(now.getMinutes());
-  seconds.value = pad(now.getSeconds());
-};
-
-onMounted(() => {
-  updateTime();
-  updateInterval = window.setInterval(updateTime, 1000);
+const hours = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return pad(timeStore.currentTime.getHours());
 });
 
-onUnmounted(() => {
-  if (updateInterval !== null) {
-    clearInterval(updateInterval);
-  }
+const minutes = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return pad(timeStore.currentTime.getMinutes());
+});
+
+const seconds = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return pad(timeStore.currentTime.getSeconds());
 });
 </script>
 
@@ -63,15 +60,5 @@ onUnmounted(() => {
 .time-separator {
   margin: 0 0.1em;
   opacity: 0.8;
-  animation: blink 1s ease-in-out infinite;
-}
-
-@keyframes blink {
-  0%, 49% {
-    opacity: 1;
-  }
-  50%, 100% {
-    opacity: 0.3;
-  }
 }
 </style>

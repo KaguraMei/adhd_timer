@@ -131,6 +131,8 @@ const statsText = computed(() => {
   flex-direction: column;
   /* 核心：占据 header 和 footer 剩下的所有空间 */
   overflow-y: auto;
+  overflow-x: hidden;
+  /* 👈 防止意外横向溢出 */
   /* 增加一点内边距，防止滚动条贴着格子 */
   padding-right: 5px;
   gap: 120px;

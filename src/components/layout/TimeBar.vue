@@ -22,8 +22,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useAnimation } from '../../composables/useAnimation';
+import { useTimeStore } from '../../stores/time';
 
 interface TimeTick {
   position: number;
@@ -33,14 +34,31 @@ interface TimeTick {
 }
 
 const { moveIndicator } = useAnimation();
+const timeStore = useTimeStore();
 
-const currentHour = ref(0);
-const currentMinute = ref(0);
-const currentSecond = ref(0);
 const indicatorRef = ref<HTMLElement | null>(null);
 const previousHour = ref(-1);
 
-let updateInterval: number | null = null;
+/**
+ * 使用全局时间存储，响应式更新
+ */
+const currentHour = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return timeStore.currentTime.getHours();
+});
+
+const currentMinute = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return timeStore.currentTime.getMinutes();
+});
+
+const currentSecond = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return timeStore.currentTime.getSeconds();
+});
 
 /**
  * 计算时间刻度
@@ -80,34 +98,14 @@ const indicatorPosition = computed(() => {
 });
 
 /**
- * 更新时间状态
+ * 监听小时变更
  */
-const updateTime = () => {
-  const now = new Date();
-  const newHour = now.getHours();
-  const newMinute = now.getMinutes();
-  const newSecond = now.getSeconds();
-
-  // 检测小时变更
-  if (previousHour.value !== -1 && previousHour.value !== newHour) {
-    // 小时变更，重置时间条（触发重新渲染）
-    currentHour.value = newHour;
-    currentMinute.value = 0;
-    currentSecond.value = 0;
-    previousHour.value = newHour;
-    
-    // 下一帧更新到实际时间
-    setTimeout(() => {
-      currentMinute.value = newMinute;
-      currentSecond.value = newSecond;
-    }, 50);
-  } else {
-    currentHour.value = newHour;
-    currentMinute.value = newMinute;
-    currentSecond.value = newSecond;
-    previousHour.value = newHour;
+watch(currentHour, (newHour, oldHour) => {
+  if (oldHour !== undefined && oldHour !== newHour) {
+    // 小时变更，记录前一个小时
+    previousHour.value = oldHour;
   }
-};
+});
 
 /**
  * 使用 Anime.js 平滑移动指示器
@@ -115,23 +113,6 @@ const updateTime = () => {
 watch(indicatorPosition, (newPosition) => {
   if (indicatorRef.value) {
     moveIndicator(indicatorRef.value, newPosition, 1000);
-  }
-});
-
-/**
- * 组件挂载时启动定时器
- */
-onMounted(() => {
-  updateTime();
-  updateInterval = window.setInterval(updateTime, 1000);
-});
-
-/**
- * 组件卸载时清理定时器
- */
-onUnmounted(() => {
-  if (updateInterval !== null) {
-    clearInterval(updateInterval);
   }
 });
 </script>

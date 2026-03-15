@@ -24,6 +24,10 @@ interface Settings {
     minute: number;
     countAsPreviousDay: boolean; // 早于开始时间是否算作前一天
   };
+  powerSaving: {
+    enabled: boolean;
+    refreshInterval: 1 | 30 | 60; // 刷新间隔（秒）：1=正常, 30=半分钟, 60=一分钟
+  };
 }
 
 const defaultSettings = {
@@ -54,6 +58,10 @@ const defaultSettings = {
     hour: 0,
     minute: 0,
     countAsPreviousDay: true // 默认：早于开始时间算作前一天
+  },
+  powerSaving: {
+    enabled: false,
+    refreshInterval: 1 as 1 | 30 | 60 // 默认每秒刷新
   }
 };
 
@@ -74,6 +82,10 @@ export const useSettingsStore = defineStore('settings', () => {
   
   // 每日开始时间设置
   const dayStartTime = ref({ ...defaultSettings.dayStartTime });
+  
+  // 省电模式设置
+  const powerSavingEnabled = ref(defaultSettings.powerSaving.enabled);
+  const refreshInterval = ref(defaultSettings.powerSaving.refreshInterval);
 
   /**
    * 从 localStorage 加载设置
@@ -117,6 +129,12 @@ export const useSettingsStore = defineStore('settings', () => {
           dayStartTime.value = { ...defaultSettings.dayStartTime, ...settings.dayStartTime };
         }
         
+        // 加载省电模式设置
+        if (settings.powerSaving !== undefined) {
+          powerSavingEnabled.value = settings.powerSaving.enabled ?? defaultSettings.powerSaving.enabled;
+          refreshInterval.value = settings.powerSaving.refreshInterval ?? defaultSettings.powerSaving.refreshInterval;
+        }
+        
         console.log('Settings loaded from localStorage', { 
           mode: themeMode.value, 
           hasCustomColors: themeMode.value === 'custom' && !!settings.theme.colors 
@@ -153,7 +171,11 @@ export const useSettingsStore = defineStore('settings', () => {
           soundType: soundType.value,
           repeatCount: soundRepeatCount.value
         },
-        dayStartTime: { ...dayStartTime.value }
+        dayStartTime: { ...dayStartTime.value },
+        powerSaving: {
+          enabled: powerSavingEnabled.value,
+          refreshInterval: refreshInterval.value
+        }
       };
       
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -259,6 +281,22 @@ export const useSettingsStore = defineStore('settings', () => {
   };
 
   /**
+   * 设置省电模式
+   */
+  const setPowerSavingEnabled = (enabled: boolean): void => {
+    powerSavingEnabled.value = enabled;
+    saveSettings();
+  };
+
+  /**
+   * 设置刷新间隔
+   */
+  const setRefreshInterval = (interval: 1 | 30 | 60): void => {
+    refreshInterval.value = interval;
+    saveSettings();
+  };
+
+  /**
    * 重置所有设置
    */
   const resetSettings = (): void => {
@@ -271,6 +309,8 @@ export const useSettingsStore = defineStore('settings', () => {
     soundType.value = defaultSettings.sound.soundType;
     soundRepeatCount.value = defaultSettings.sound.repeatCount;
     dayStartTime.value = { ...defaultSettings.dayStartTime };
+    powerSavingEnabled.value = defaultSettings.powerSaving.enabled;
+    refreshInterval.value = defaultSettings.powerSaving.refreshInterval;
     saveSettings();
   };
 
@@ -285,6 +325,8 @@ export const useSettingsStore = defineStore('settings', () => {
     soundType,
     soundRepeatCount,
     dayStartTime,
+    powerSavingEnabled,
+    refreshInterval,
     
     // Actions
     loadSettings,
@@ -300,6 +342,8 @@ export const useSettingsStore = defineStore('settings', () => {
     setSoundType,
     setSoundRepeatCount,
     setDayStartTime,
+    setPowerSavingEnabled,
+    setRefreshInterval,
     resetSettings
   };
 });

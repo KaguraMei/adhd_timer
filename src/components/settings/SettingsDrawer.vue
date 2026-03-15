@@ -177,6 +177,41 @@
           </button>
         </section>
 
+        <!-- 省电模式设置 -->
+        <section class="settings-section">
+          <h3>省电模式</h3>
+          <p class="section-description">
+            适用于墨水屏等低刷新率设备，降低页面刷新频率以节省电量
+          </p>
+
+          <div class="toggle-group">
+            <label for="powerSavingEnabled">
+              <span>启用省电模式</span>
+              <span class="toggle-description">降低刷新频率，适合墨水屏设备</span>
+            </label>
+            <label class="toggle-switch">
+              <input id="powerSavingEnabled" type="checkbox" :checked="powerSavingEnabled"
+                @change="handlePowerSavingToggle" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div v-if="powerSavingEnabled" class="refresh-interval-selector" style="margin-top: var(--spacing-md);">
+            <label for="refreshInterval" class="sound-type-label">
+              刷新间隔
+            </label>
+            <select id="refreshInterval" :value="refreshInterval" @change="handleRefreshIntervalChange"
+              class="sound-type-select">
+              <option :value="1">正常 (1秒)</option>
+              <option :value="30">省电 (30秒)</option>
+              <option :value="60">超级省电 (60秒)</option>
+            </select>
+            <p class="sound-type-description">
+              {{ refreshIntervalDescription }}
+            </p>
+          </div>
+        </section>
+
         <!-- 每日开始时间设置 -->
         <section class="settings-section">
           <h3>每日开始时间</h3>
@@ -266,6 +301,23 @@ const timerEndSoundEnabled = computed(() => settingsStore.timerEndSoundEnabled);
 const soundType = computed(() => settingsStore.soundType);
 const soundRepeatCount = computed(() => settingsStore.soundRepeatCount);
 const soundTypes = getSoundTypes();
+
+// 省电模式设置
+const powerSavingEnabled = computed(() => settingsStore.powerSavingEnabled);
+const refreshInterval = computed(() => settingsStore.refreshInterval);
+
+const refreshIntervalDescription = computed(() => {
+  switch (refreshInterval.value) {
+    case 1:
+      return '正常模式，每秒刷新一次，适合普通屏幕';
+    case 30:
+      return '省电模式，每30秒刷新一次，适合墨水屏设备';
+    case 60:
+      return '超级省电模式，每60秒刷新一次，最大化节省电量';
+    default:
+      return '';
+  }
+});
 
 // 每日开始时间 - 使用 computed 确保响应式
 const dayStartHour = computed({
@@ -383,6 +435,21 @@ const handleTestSound = (): void => {
   playSound(soundType.value, soundRepeatCount.value);
 };
 
+
+/**
+ * 处理省电模式切换
+ */
+const handlePowerSavingToggle = (): void => {
+  settingsStore.setPowerSavingEnabled(!powerSavingEnabled.value);
+};
+
+/**
+ * 处理刷新间隔变化
+ */
+const handleRefreshIntervalChange = (event: Event): void => {
+  const target = event.target as HTMLSelectElement;
+  settingsStore.setRefreshInterval(Number(target.value) as 1 | 30 | 60);
+};
 
 /**
  * 处理日期计算模式切换

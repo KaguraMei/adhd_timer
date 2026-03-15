@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { type ViewMode } from './types/view';
 import { useTheme } from './composables/useTheme';
 import { useTimeStore } from './stores/time';
+import { useSettingsStore } from './stores/settings';
 import TabNavigation from './components/layout/TabNavigation.vue';
 import ViewContainer from './components/layout/ViewContainer.vue';
 import SettingsDrawer from './components/settings/SettingsDrawer.vue';
@@ -20,6 +21,9 @@ const { loadTheme } = useTheme();
 
 // 使用全局时间 store
 const timeStore = useTimeStore();
+
+// 使用设置 store
+const settingsStore = useSettingsStore();
 
 /**
  * 切换视图
@@ -41,6 +45,17 @@ const toggleSettings = (): void => {
 const closeSettings = (): void => {
   showSettings.value = false;
 };
+
+/**
+ * 监听刷新间隔变化，重启时间更新
+ */
+watch(
+  () => [settingsStore.powerSavingEnabled, settingsStore.refreshInterval],
+  () => {
+    console.log('Refresh interval changed, restarting time updates');
+    timeStore.restartTimeUpdates();
+  }
+);
 
 /**
  * 组件挂载时初始化

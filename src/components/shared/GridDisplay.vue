@@ -21,19 +21,29 @@ const props = withDefaults(defineProps<Props>(), {
 const gridItems = ref<HTMLElement[]>([]);
 const { staggerGrid } = useAnimation();
 
-// 计算网格列数
-const calculatedColumns = computed(() => {
-  if (props.columns > 0) return props.columns;
-
-  // 自动计算列数
-  if (props.total <= 31) return 7; // 月度视图
-  if (props.total <= 100) return 10; // 人生视图
-  return Math.ceil(Math.sqrt(props.total)); // 年度视图
+// 计算网格样式
+const gridStyle = computed(() => {
+  // 1. 如果有明确传入列数，使用固定列数
+  if (props.columns > 0) {
+    return { gridTemplateColumns: `repeat(${props.columns}, 1fr)` };
+  }
+  
+  // 2. 月度视图（31天以内），固定7列
+  if (props.total <= 31) {
+    return { gridTemplateColumns: `repeat(7, 1fr)` };
+  }
+  
+  // 3. 人生视图（100天以内），固定10列
+  if (props.total <= 100) {
+    return { gridTemplateColumns: `repeat(10, 1fr)` };
+  }
+  
+  // 4. 年度视图（365天），使用 auto-fill 自动填充
+  // 根据方块大小自动决定每行能放多少个，放不下自动换行
+  return {
+    gridTemplateColumns: `repeat(auto-fill, minmax(var(--grid-size, 20px), 1fr))`
+  };
 });
-
-const gridStyle = computed(() => ({
-  gridTemplateColumns: `repeat(${calculatedColumns.value}, 1fr)`
-}));
 
 // 判断格子状态
 const getItemClass = (index: number) => {

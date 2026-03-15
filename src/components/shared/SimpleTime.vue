@@ -9,34 +9,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { computed } from 'vue';
+import { useTimeStore } from '../../stores/time';
 
-const hours = ref('00');
-const minutes = ref('00');
-const seconds = ref('00');
-
-let updateInterval: number | null = null;
+const timeStore = useTimeStore();
 
 const pad = (num: number): string => {
   return num.toString().padStart(2, '0');
 };
 
-const updateTime = () => {
-  const now = new Date();
-  hours.value = pad(now.getHours());
-  minutes.value = pad(now.getMinutes());
-  seconds.value = pad(now.getSeconds());
-};
-
-onMounted(() => {
-  updateTime();
-  updateInterval = window.setInterval(updateTime, 1000);
+/**
+ * 使用全局时间存储，响应式更新
+ */
+const hours = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return pad(timeStore.currentTime.getHours());
 });
 
-onUnmounted(() => {
-  if (updateInterval !== null) {
-    clearInterval(updateInterval);
-  }
+const minutes = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return pad(timeStore.currentTime.getMinutes());
+});
+
+const seconds = computed(() => {
+  // 触发响应式依赖
+  timeStore.timestamp;
+  return pad(timeStore.currentTime.getSeconds());
 });
 </script>
 

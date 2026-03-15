@@ -70,9 +70,15 @@ export const useTimeStore = defineStore('time', () => {
     lastAdjustedMonth.value = adjusted.getMonth();
     lastAdjustedYear.value = adjusted.getFullYear();
     
-    // 每秒更新一次（为倒计时提供精确更新）
-    updateInterval = window.setInterval(updateTime, 1000);
-    console.log('Time updates started');
+    // 根据设置确定刷新间隔
+    const settingsStore = useSettingsStore();
+    const interval = settingsStore.powerSavingEnabled 
+      ? settingsStore.refreshInterval * 1000 
+      : 1000;
+    
+    // 启动定时更新
+    updateInterval = window.setInterval(updateTime, interval);
+    console.log(`Time updates started with ${interval}ms interval`);
   };
   
   /**
@@ -84,6 +90,14 @@ export const useTimeStore = defineStore('time', () => {
       updateInterval = null;
       console.log('Time updates stopped');
     }
+  };
+  
+  /**
+   * 重启时间更新（用于刷新间隔变化时）
+   */
+  const restartTimeUpdates = () => {
+    stopTimeUpdates();
+    startTimeUpdates();
   };
   
   // 计算属性：用于触发依赖更新
@@ -146,6 +160,7 @@ export const useTimeStore = defineStore('time', () => {
     // Actions
     startTimeUpdates,
     stopTimeUpdates,
+    restartTimeUpdates,
     updateTime
   };
 });

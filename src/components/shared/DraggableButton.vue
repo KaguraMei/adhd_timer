@@ -237,7 +237,6 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast) ease;
   z-index: 500;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   user-select: none;
@@ -246,6 +245,16 @@ onUnmounted(() => {
   /* 确保不会被状态栏遮挡 */
   margin-top: env(safe-area-inset-top, 0px);
   margin-right: env(safe-area-inset-right, 0px);
+  
+  /* 👇 修复 1：彻底干掉手机端点击时产生的方形黑块/灰块 */
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  
+  /* 👇 修复 2：千万不要用 transition: all！只给颜色和阴影加动画，不要给 top/right 加动画 */
+  transition: background-color var(--transition-fast) ease,
+              border-color var(--transition-fast) ease,
+              transform var(--transition-fast) ease,
+              box-shadow var(--transition-fast) ease;
 }
 
 .draggable-button:hover {
@@ -260,6 +269,9 @@ onUnmounted(() => {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   border-color: var(--color-primary);
   opacity: 0.9;
+  
+  /* 👇 修复 3：在拖拽状态下，强制关闭所有过渡动画，让按钮实现 120Hz 像素级跟手！ */
+  transition: none !important;
 }
 
 .draggable-button.dragging:hover {

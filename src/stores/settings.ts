@@ -137,7 +137,11 @@ export const useSettingsStore = defineStore('settings', () => {
         
         console.log('Settings loaded from localStorage', { 
           mode: themeMode.value, 
-          hasCustomColors: themeMode.value === 'custom' && !!settings.theme.colors 
+          hasCustomColors: themeMode.value === 'custom' && !!settings.theme.colors,
+          powerSaving: {
+            enabled: powerSavingEnabled.value,
+            refreshInterval: refreshInterval.value
+          }
         });
       }
     } catch (error) {

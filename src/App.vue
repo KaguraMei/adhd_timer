@@ -61,11 +61,14 @@ watch(
  * 组件挂载时初始化
  */
 onMounted(() => {
-  // 从 localStorage 加载主题并应用
+  // 从 localStorage 加载主题并应用（这会加载所有设置）
   loadTheme();
 
-  // 启动全局时间更新
-  timeStore.startTimeUpdates();
+  // 确保设置加载完成后再启动时间更新
+  // 使用 nextTick 确保 settings store 已经完全初始化
+  setTimeout(() => {
+    timeStore.startTimeUpdates();
+  }, 0);
 });
 
 /**

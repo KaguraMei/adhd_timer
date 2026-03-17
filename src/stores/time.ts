@@ -64,6 +64,9 @@ export const useTimeStore = defineStore('time', () => {
   const startTimeUpdates = () => {
     if (updateInterval !== null) return;
     
+    // 立即更新一次时间
+    updateTime();
+    
     // 初始化调整后日期
     const adjusted = getAdjustedNow();
     lastAdjustedDate.value = adjusted.getDate();

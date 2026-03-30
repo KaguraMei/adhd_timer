@@ -15,11 +15,11 @@
         <p class="stats-text">{{ statsLine2 }}</p>
       </div>
     </div>
-    <button class="view-toggle" @click="toggleView" aria-label="切换视图">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
-      </svg>
-    </button>
+      <button class="view-toggle" @click="toggleView" aria-label="切换视图">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+        </svg>
+      </button>
   </div>
 </template>
 
@@ -103,6 +103,7 @@ const toggleView = () => {
 .week-view {
   width: 100%;
   padding: var(--spacing-md, 20px);
+  padding-bottom: 0px;
   position: relative;
 }
 
@@ -150,8 +151,8 @@ const toggleView = () => {
 
 .view-toggle {
   position: fixed;
-  bottom: 80px;
-  left: 20px;
+  bottom: 0px;
+  left: 0px;
   width: 40px;
   height: 40px;
   padding: 8px;
@@ -172,11 +173,13 @@ const toggleView = () => {
 
 .view-toggle:hover {
   opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
   transform: rotate(180deg);
 }
 
 .view-toggle:active {
   opacity: 0.8;
+  transform: scale(0.95);
 }
 
 @media (max-width: 480px) {
@@ -196,12 +199,14 @@ const toggleView = () => {
     font-size: 14px;
   }
 
+  .view-actions {
+    padding: var(--spacing-sm, 10px) 0;
+  }
+
   .view-toggle {
-    bottom: 70px;
-    left: 15px;
-    width: 36px;
-    height: 36px;
-    padding: 6px;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
   }
 }
 </style>

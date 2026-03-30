@@ -1,14 +1,21 @@
 /**
  * useTimer - 倒计时管理 composable
- * 管理倒计时状态和逻辑
+ * 使用 Tauri 后端定时器，避免前端挂起时计时不准确
  * 使用单例模式确保状态在组件间共享
- * 依赖全局时间 Store，避免创建独立定时器
  */
 
-import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
-import { useTimeStore } from '@/stores/time';
+import { ref, computed, onMounted, onUnmounted, type Ref, type ComputedRef } from 'vue';
+import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useSettingsStore } from '@/stores/settings';
 import { playSound } from '@/utils/soundUtils';
+
+interface TimerState {
+  total_seconds: number;
+  remaining_seconds: number;
+  is_running: boolean;
+  end_time: number | null;
+}
 
 interface TimerComposable {
   totalSeconds: Ref<number>;
@@ -16,20 +23,24 @@ interface TimerComposable {
   isRunning: Ref<boolean>;
   displayTime: ComputedRef<string>;
   progress: ComputedRef<number>;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  setDuration: (minutes: number) => void;
+  start: () => Promise<void>;
+  pause: () => Promise<void>;
+  reset: () => Promise<void>;
+  setDuration: (minutes: number) => Promise<void>;
+  syncState: () => Promise<void>;
 }
 
 // 单例状态 - 在模块级别定义，确保状态持久化
 const totalSeconds = ref<number>(0);
 const remainingSeconds = ref<number>(0);
 const isRunning = ref<boolean>(false);
-const endTime = ref<number>(0); // 结束时间戳
+
+// 事件监听器
+let unlistenTick: UnlistenFn | null = null;
+let unlistenFinished: UnlistenFn | null = null;
+let isListenerSetup = false;
 
 export function useTimer(): TimerComposable {
-  const timeStore = useTimeStore();
   const settingsStore = useSettingsStore();
 
   /**
@@ -51,70 +62,134 @@ export function useTimer(): TimerComposable {
   });
 
   /**
-   * 根据全局时间更新剩余秒数
+   * 从 Tauri 后端同步状态
    */
-  watch(() => timeStore.timestamp, (currentTimestamp) => {
-    if (!isRunning.value || endTime.value === 0) return;
-
-    const remaining = Math.ceil((endTime.value - currentTimestamp) / 1000);
-    
-    if (remaining <= 0) {
-      // 倒计时结束
-      remainingSeconds.value = 0;
-      pause();
-      
-      // 播放提示音
-      if (settingsStore.soundEnabled && settingsStore.timerEndSoundEnabled) {
-        playSound(settingsStore.soundType, settingsStore.soundRepeatCount);
-      }
-    } else {
-      remainingSeconds.value = remaining;
+  const syncState = async (): Promise<void> => {
+    try {
+      const state = await invoke<TimerState>('timer_get_state');
+      totalSeconds.value = state.total_seconds;
+      remainingSeconds.value = state.remaining_seconds;
+      isRunning.value = state.is_running;
+    } catch (error) {
+      console.error('Failed to sync timer state:', error);
     }
-  });
+  };
+
+  /**
+   * 设置事件监听器
+   */
+  const setupListeners = async (): Promise<void> => {
+    if (isListenerSetup) return;
+
+    try {
+      // 监听定时器更新事件
+      unlistenTick = await listen<TimerState>('timer-tick', (event) => {
+        const state = event.payload;
+        totalSeconds.value = state.total_seconds;
+        remainingSeconds.value = state.remaining_seconds;
+        isRunning.value = state.is_running;
+      });
+
+      // 监听定时器结束事件
+      unlistenFinished = await listen('timer-finished', () => {
+        remainingSeconds.value = 0;
+        isRunning.value = false;
+        
+        // 播放提示音
+        if (settingsStore.soundEnabled && settingsStore.timerEndSoundEnabled) {
+          playSound(settingsStore.soundType, settingsStore.soundRepeatCount);
+        }
+      });
+
+      isListenerSetup = true;
+      console.log('Timer event listeners setup');
+    } catch (error) {
+      console.error('Failed to setup timer listeners:', error);
+    }
+  };
+
+  /**
+   * 清理事件监听器
+   */
+  const cleanupListeners = (): void => {
+    if (unlistenTick) {
+      unlistenTick();
+      unlistenTick = null;
+    }
+    if (unlistenFinished) {
+      unlistenFinished();
+      unlistenFinished = null;
+    }
+    isListenerSetup = false;
+  };
 
   /**
    * 开始倒计时
    */
-  const start = (): void => {
-    if (remainingSeconds.value <= 0) {
-      return;
+  const start = async (): Promise<void> => {
+    try {
+      const state = await invoke<TimerState>('timer_start');
+      totalSeconds.value = state.total_seconds;
+      remainingSeconds.value = state.remaining_seconds;
+      isRunning.value = state.is_running;
+    } catch (error) {
+      console.error('Failed to start timer:', error);
     }
-
-    isRunning.value = true;
-    // 计算结束时间戳
-    endTime.value = Date.now() + remainingSeconds.value * 1000;
   };
 
   /**
    * 暂停倒计时
    */
-  const pause = (): void => {
-    isRunning.value = false;
-    endTime.value = 0;
+  const pause = async (): Promise<void> => {
+    try {
+      const state = await invoke<TimerState>('timer_pause');
+      totalSeconds.value = state.total_seconds;
+      remainingSeconds.value = state.remaining_seconds;
+      isRunning.value = state.is_running;
+    } catch (error) {
+      console.error('Failed to pause timer:', error);
+    }
   };
 
   /**
    * 重置倒计时
    */
-  const reset = (): void => {
-    pause();
-    remainingSeconds.value = totalSeconds.value;
+  const reset = async (): Promise<void> => {
+    try {
+      const state = await invoke<TimerState>('timer_reset');
+      totalSeconds.value = state.total_seconds;
+      remainingSeconds.value = state.remaining_seconds;
+      isRunning.value = state.is_running;
+    } catch (error) {
+      console.error('Failed to reset timer:', error);
+    }
   };
 
   /**
    * 设置倒计时时长
    * @param minutes 分钟数
    */
-  const setDuration = (minutes: number): void => {
-    // 确保不在运行时设置时长
-    if (isRunning.value) {
-      return;
+  const setDuration = async (minutes: number): Promise<void> => {
+    try {
+      const state = await invoke<TimerState>('timer_set_duration', { minutes });
+      totalSeconds.value = state.total_seconds;
+      remainingSeconds.value = state.remaining_seconds;
+      isRunning.value = state.is_running;
+    } catch (error) {
+      console.error('Failed to set timer duration:', error);
     }
-
-    const seconds = minutes * 60;
-    totalSeconds.value = seconds;
-    remainingSeconds.value = seconds;
   };
+
+  // 初始化时设置监听器和同步状态
+  onMounted(async () => {
+    await setupListeners();
+    await syncState();
+  });
+
+  // 清理监听器
+  onUnmounted(() => {
+    cleanupListeners();
+  });
 
   return {
     totalSeconds,
@@ -125,6 +200,7 @@ export function useTimer(): TimerComposable {
     start,
     pause,
     reset,
-    setDuration
+    setDuration,
+    syncState
   };
 }

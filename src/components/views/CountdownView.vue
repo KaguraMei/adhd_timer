@@ -103,27 +103,27 @@ const buttonText = computed(() => {
 });
 
 // 处理滑动条变化
-const handleSliderChange = () => {
+const handleSliderChange = async () => {
   if (!isRunning.value) {
-    setDuration(selectedMinutes.value);
+    await setDuration(selectedMinutes.value);
   }
 };
 
 // 切换计时器状态
-const toggleTimer = () => {
+const toggleTimer = async () => {
   if (remainingSeconds.value === 0) {
-    reset();
+    await reset();
   } else if (isRunning.value) {
-    pause();
+    await pause();
   } else {
-    start();
+    await start();
   }
 };
 
 // 初始化默认时长
-watch(() => totalSeconds.value, (newValue) => {
+watch(() => totalSeconds.value, async (newValue) => {
   if (newValue === 0) {
-    setDuration(25);
+    await setDuration(25);
   }
 }, { immediate: true });
 </script>
